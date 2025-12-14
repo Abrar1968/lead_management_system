@@ -1,7 +1,15 @@
 <?php
 
-test('the application returns a successful response', function () {
+it('redirects to login when unauthenticated', function () {
     $response = $this->get('/');
 
-    $response->assertStatus(200);
+    $response->assertRedirect('/login');
+});
+
+it('redirects to dashboard when authenticated', function () {
+    $user = \App\Models\User::factory()->create();
+
+    $response = $this->actingAs($user)->get('/');
+
+    $response->assertRedirect('/dashboard');
 });
