@@ -11,8 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Use raw SQL to avoid doctrine/dbal dependency
-        \Illuminate\Support\Facades\DB::statement('ALTER TABLE leads MODIFY assigned_to BIGINT UNSIGNED NULL');
+        // Drop the foreign key first
+        Schema::table('leads', function (Blueprint $table) {
+            $table->dropForeign(['assigned_to']);
+        });
+
+        // Recreate the column as nullable with foreign key
+        Schema::table('leads', function (Blueprint $table) {
+            $table->unsignedBigInteger('assigned_to')->nullable()->change();
+            $table->foreign('assigned_to')->references('id')->on('users')->onDelete('set null');
+        });
     }
 
     /**
@@ -20,6 +28,15 @@ return new class extends Migration
      */
     public function down(): void
     {
-        \Illuminate\Support\Facades\DB::statement('ALTER TABLE leads MODIFY assigned_to BIGINT UNSIGNED NOT NULL');
+        // Drop the foreign key first
+        Schema::table('leads', function (Blueprint $table) {
+            $table->dropForeign(['assigned_to']);
+        });
+
+        // Recreate the column as not nullable with cascade delete
+        Schema::table('leads', function (Blueprint $table) {
+            $table->unsignedBigInteger('assigned_to')->nullable(false)->change();
+            $table->foreign('assigned_to')->references('id')->on('users')->onDelete('cascade');
+        });
     }
 };

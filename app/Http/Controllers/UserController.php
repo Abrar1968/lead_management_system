@@ -160,21 +160,65 @@ class UserController extends Controller
     /**
      * Remove the specified user.
      */
-    public function destroy(User $user): RedirectResponse
+    public function destroy(Request $request, User $user): RedirectResponse
     {
         // Prevent self-deletion
         if ($user->id === auth()->id()) {
             return back()->with('error', 'You cannot delete your own account.');
         }
 
-        // Check for assigned leads
+        // Get the admin user to reassign leads if needed
+        $adminUser = User::where('role', 'admin')
+            ->where('id', '!=', $user->id)
+            ->first();
+
+        // Handle leads if user has any
         if ($user->leads()->exists()) {
-            return back()->with('error', 'Cannot delete user with assigned leads. Reassign leads first.');
+            $action = $request->input('lead_action', 'cancel');
+
+            switch ($action) {
+                case 'delete':
+                    // Delete all leads assigned to this user
+                    $user->leads()->delete();
+                    break;
+
+                case 'reassign':
+                    if (! $adminUser) {
+                        return back()->with('error', 'No admin user available to reassign leads.');
+                    }
+                    // Reassign all leads to admin
+                    $user->leads()->update(['assigned_to' => $adminUser->id]);
+                    break;
+
+                case 'cancel':
+                default:
+                    // Return error asking for action
+                    return back()->with('error', 'This user has ' . $user->leads()->count() . ' assigned leads. Please choose to delete or reassign them first.');
+            }
         }
 
         $user->delete();
 
         return redirect()->route('users.index')
             ->with('success', 'User deleted successfully.');
+    }
+
+    /**
+     * Bulk reassign leads from one user to another.
+     */
+    public function bulkReassignLeads(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'from_user_id' => 'required|exists:users,id',
+            'to_user_id' => 'required|exists:users,id|different:from_user_id',
+        ]);
+
+        $fromUser = User::findOrFail($validated['from_user_id']);
+        $toUser = User::findOrFail($validated['to_user_id']);
+
+        $count = $fromUser->leads()->count();
+        $fromUser->leads()->update(['assigned_to' => $toUser->id]);
+
+        return back()->with('success', "Successfully reassigned {$count} leads to {$toUser->name}.");
     }
 }

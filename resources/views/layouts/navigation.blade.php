@@ -11,10 +11,30 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden space-x-6 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('leads.daily')" :active="request()->routeIs('leads.daily')">
+                        {{ __('Daily Leads') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('leads.index')" :active="request()->routeIs('leads.index')">
+                        {{ __('All Leads') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('follow-ups.index')" :active="request()->routeIs('follow-ups.*')">
+                        {{ __('Follow-ups') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('contacts.index')" :active="request()->routeIs('contacts.*')">
+                        {{ __('Calls') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('meetings.index')" :active="request()->routeIs('meetings.*')">
+                        {{ __('Meetings') }}
+                    </x-nav-link>
+                    @if(auth()->user()->isAdmin())
+                    <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                        {{ __('Users') }}
+                    </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -36,6 +56,12 @@
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('commission.settings')">
+                            {{ __('Commission Settings') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('reports.index')">
+                            {{ __('Reports') }}
                         </x-dropdown-link>
 
                         <!-- Authentication -->
@@ -70,6 +96,26 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('leads.daily')" :active="request()->routeIs('leads.daily')">
+                {{ __('Daily Leads') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('leads.index')" :active="request()->routeIs('leads.index')">
+                {{ __('All Leads') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('follow-ups.index')" :active="request()->routeIs('follow-ups.*')">
+                {{ __('Follow-ups') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('contacts.index')" :active="request()->routeIs('contacts.*')">
+                {{ __('Calls') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('meetings.index')" :active="request()->routeIs('meetings.*')">
+                {{ __('Meetings') }}
+            </x-responsive-nav-link>
+            @if(auth()->user()->isAdmin())
+            <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                {{ __('Users') }}
+            </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
@@ -82,6 +128,12 @@
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('commission.settings')">
+                    {{ __('Commission Settings') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('reports.index')">
+                    {{ __('Reports') }}
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->

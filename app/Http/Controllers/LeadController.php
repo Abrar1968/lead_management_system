@@ -131,4 +131,99 @@ class LeadController extends Controller
 
         return response()->json($result);
     }
+
+    /**
+     * Bulk delete leads (Admin only)
+     */
+    public function bulkDelete(Request $request): RedirectResponse|JsonResponse
+    {
+        // Verify admin role
+        if (! $request->user()->isAdmin()) {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+            return back()->with('error', 'Only admins can perform bulk operations.');
+        }
+
+        $validated = $request->validate([
+            'lead_ids' => 'required|array|min:1',
+            'lead_ids.*' => 'exists:leads,id',
+        ]);
+
+        $count = Lead::whereIn('id', $validated['lead_ids'])->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} leads deleted successfully.",
+            ]);
+        }
+
+        return back()->with('success', "{$count} leads deleted successfully.");
+    }
+
+    /**
+     * Bulk reassign leads (Admin only)
+     */
+    public function bulkReassign(Request $request): RedirectResponse|JsonResponse
+    {
+        // Verify admin role
+        if (! $request->user()->isAdmin()) {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+            return back()->with('error', 'Only admins can perform bulk operations.');
+        }
+
+        $validated = $request->validate([
+            'lead_ids' => 'required|array|min:1',
+            'lead_ids.*' => 'exists:leads,id',
+            'assigned_to' => 'required|exists:users,id',
+        ]);
+
+        $user = User::findOrFail($validated['assigned_to']);
+        $count = Lead::whereIn('id', $validated['lead_ids'])
+            ->update(['assigned_to' => $validated['assigned_to']]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} leads reassigned to {$user->name}.",
+            ]);
+        }
+
+        return back()->with('success', "{$count} leads reassigned to {$user->name}.");
+    }
+
+    /**
+     * Bulk update lead status (Admin only)
+     */
+    public function bulkUpdateStatus(Request $request): RedirectResponse|JsonResponse
+    {
+        // Verify admin role
+        if (! $request->user()->isAdmin()) {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+            return back()->with('error', 'Only admins can perform bulk operations.');
+        }
+
+        $validated = $request->validate([
+            'lead_ids' => 'required|array|min:1',
+            'lead_ids.*' => 'exists:leads,id',
+            'status' => 'required|in:New,Cold,Warm,Hot,Lost,Converted',
+        ]);
+
+        $count = Lead::whereIn('id', $validated['lead_ids'])
+            ->update(['status' => $validated['status']]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} leads updated to {$validated['status']}.",
+            ]);
+        }
+
+        return back()->with('success', "{$count} leads updated to {$validated['status']}.");
+    }
 }

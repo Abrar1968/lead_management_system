@@ -5,7 +5,10 @@ use App\Http\Controllers\ConversionController;
 use App\Http\Controllers\DailyLeadController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExtraCommissionController;
+use App\Http\Controllers\FollowUpController;
+use App\Http\Controllers\LeadContactController;
 use App\Http\Controllers\LeadController;
+use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MonthlyLeadController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
@@ -36,6 +39,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Repeat Lead Check API
     Route::post('/leads/check-repeat', [LeadController::class, 'checkRepeat'])->name('leads.check-repeat');
 
+    // Follow-ups
+    Route::resource('follow-ups', FollowUpController::class)->except(['create', 'show', 'edit']);
+    Route::post('/follow-ups/{followUp}/complete', [FollowUpController::class, 'complete'])->name('follow-ups.complete');
+    Route::get('/leads/{lead}/follow-ups', [FollowUpController::class, 'forLead'])->name('follow-ups.for-lead');
+    Route::post('/leads/{lead}/follow-ups/quick', [FollowUpController::class, 'quickAdd'])->name('follow-ups.quick-add');
+
+    // Lead Contacts (Calls)
+    Route::resource('contacts', LeadContactController::class)->except(['create', 'show', 'edit']);
+    Route::get('/leads/{lead}/contacts', [LeadContactController::class, 'forLead'])->name('contacts.for-lead');
+    Route::post('/leads/{lead}/contacts/quick', [LeadContactController::class, 'quickLog'])->name('contacts.quick-log');
+
+    // Meetings
+    Route::resource('meetings', MeetingController::class)->except(['create', 'show', 'edit']);
+    Route::post('/meetings/{meeting}/outcome', [MeetingController::class, 'updateOutcome'])->name('meetings.update-outcome');
+    Route::get('/leads/{lead}/meetings', [MeetingController::class, 'forLead'])->name('meetings.for-lead');
+    Route::post('/leads/{lead}/meetings/quick', [MeetingController::class, 'quickSchedule'])->name('meetings.quick-schedule');
+
     // Commission Settings
     Route::get('/commission/settings', [CommissionController::class, 'settings'])->name('commission.settings');
     Route::put('/commission/settings', [CommissionController::class, 'updateSettings'])->name('commission.update');
@@ -51,6 +71,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Admin Routes
 Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::resource('users', UserController::class);
+
+    // Bulk Lead Reassignment from User
+    Route::post('/users/bulk-reassign-leads', [UserController::class, 'bulkReassignLeads'])->name('users.bulk-reassign-leads');
+
+    // Bulk Lead Operations
+    Route::post('/leads/bulk-delete', [LeadController::class, 'bulkDelete'])->name('leads.bulk-delete');
+    Route::post('/leads/bulk-reassign', [LeadController::class, 'bulkReassign'])->name('leads.bulk-reassign');
+    Route::post('/leads/bulk-status', [LeadController::class, 'bulkUpdateStatus'])->name('leads.bulk-status');
 
     // Extra Commissions Management
     Route::resource('extra-commissions', ExtraCommissionController::class);
