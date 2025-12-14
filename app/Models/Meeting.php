@@ -7,16 +7,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Meeting extends Model
 {
-    /**
-     * Meeting status options
-     */
-    public const MEETING_STATUSES = [
-        'Positive' => ['label' => 'Positive', 'color' => 'green', 'bg' => 'bg-green-100', 'text' => 'text-green-800'],
-        'Negative' => ['label' => 'Negative', 'color' => 'red', 'bg' => 'bg-red-100', 'text' => 'text-red-800'],
-        'Confirmed' => ['label' => 'Confirmed', 'color' => 'blue', 'bg' => 'bg-blue-100', 'text' => 'text-blue-800'],
-        'Pending' => ['label' => 'Pending', 'color' => 'yellow', 'bg' => 'bg-yellow-100', 'text' => 'text-yellow-800'],
-    ];
-
     protected $fillable = [
         'lead_id',
         'follow_up_id',

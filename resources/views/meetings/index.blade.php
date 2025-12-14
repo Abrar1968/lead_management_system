@@ -225,9 +225,8 @@
                         <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($meetings as $meeting)
-                        <tbody x-data="{ editing: false }">
+                    <tbody x-data="{ editing: false }" class="bg-white divide-y divide-gray-200">
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <a href="{{ route('leads.show', $meeting->lead) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
@@ -326,15 +325,16 @@
                                 </form>
                             </td>
                         </tr>
-                        </tbody>
+                    </tbody>
                     @empty
+                    <tbody class="bg-white">
                         <tr>
                             <td colspan="8" class="px-4 py-8 text-center text-gray-500">
                                 No meetings found for this date.
                             </td>
                         </tr>
+                    </tbody>
                     @endforelse
-                </tbody>
             </table>
         </div>
         @if($meetings->hasPages())

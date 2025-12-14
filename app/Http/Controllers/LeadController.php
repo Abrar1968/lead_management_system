@@ -28,6 +28,7 @@ class LeadController extends Controller
 
         return view('leads.index', [
             'leads' => $leads,
+            'users' => User::where('is_active', true)->get(),
         ]);
     }
 
@@ -142,6 +143,7 @@ class LeadController extends Controller
             if ($request->wantsJson()) {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
+
             return back()->with('error', 'Only admins can perform bulk operations.');
         }
 
@@ -172,6 +174,7 @@ class LeadController extends Controller
             if ($request->wantsJson()) {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
+
             return back()->with('error', 'Only admins can perform bulk operations.');
         }
 
@@ -205,13 +208,14 @@ class LeadController extends Controller
             if ($request->wantsJson()) {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
+
             return back()->with('error', 'Only admins can perform bulk operations.');
         }
 
         $validated = $request->validate([
             'lead_ids' => 'required|array|min:1',
             'lead_ids.*' => 'exists:leads,id',
-            'status' => 'required|in:New,Cold,Warm,Hot,Lost,Converted',
+            'status' => 'required|in:New,Contacted,Qualified,Negotiation,Converted,Lost',
         ]);
 
         $count = Lead::whereIn('id', $validated['lead_ids'])

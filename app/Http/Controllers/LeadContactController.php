@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Lead;
 use App\Models\LeadContact;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -93,7 +92,7 @@ class LeadContactController extends Controller
     {
         $validated = $request->validate([
             'lead_id' => 'required|exists:leads,id',
-            'response_status' => 'required|string|in:' . implode(',', array_keys(self::RESPONSE_STATUSES)),
+            'response_status' => 'required|string|in:'.implode(',', array_keys(self::RESPONSE_STATUSES)),
             'call_date' => 'sometimes|date',
             'call_time' => 'nullable|date_format:H:i',
             'notes' => 'nullable|string|max:1000',
@@ -126,7 +125,7 @@ class LeadContactController extends Controller
     public function update(Request $request, LeadContact $contact): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
-            'response_status' => 'sometimes|string|in:' . implode(',', array_keys(self::RESPONSE_STATUSES)),
+            'response_status' => 'sometimes|string|in:'.implode(',', array_keys(self::RESPONSE_STATUSES)),
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -163,7 +162,7 @@ class LeadContactController extends Controller
     public function quickLog(Request $request, Lead $lead): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
-            'response_status' => 'required|string|in:' . implode(',', array_keys(self::RESPONSE_STATUSES)),
+            'response_status' => 'required|string|in:'.implode(',', array_keys(self::RESPONSE_STATUSES)),
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -191,16 +190,18 @@ class LeadContactController extends Controller
      */
     private function updateLeadStatusFromResponse(Lead $lead, string $responseStatus): void
     {
+        // Map call responses to valid Lead statuses:
+        // Valid statuses: New, Contacted, Qualified, Negotiation, Converted, Lost
         $statusMapping = [
-            'Yes' => 'Hot',
-            'Interested' => 'Hot',
-            'Demo Delivered' => 'Hot',
-            '80%' => 'Warm',
-            '50%' => 'Warm',
-            'Call Later' => 'Warm',
+            'Yes' => 'Qualified',
+            'Interested' => 'Qualified',
+            'Demo Delivered' => 'Negotiation',
+            '80%' => 'Negotiation',
+            '50%' => 'Contacted',
+            'Call Later' => 'Contacted',
             'No' => 'Lost',
-            'No Res.' => 'Cold',
-            'Phone off' => 'Cold',
+            'No Res.' => 'Contacted',
+            'Phone off' => 'Contacted',
         ];
 
         if (isset($statusMapping[$responseStatus])) {
