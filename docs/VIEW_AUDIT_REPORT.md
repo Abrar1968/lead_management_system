@@ -20,6 +20,7 @@ This comprehensive audit examines all view files under `resources/views/` and th
 | Status Constants | ✅ Fixed | Duplicate constants removed | ✅ |
 | Validation | ✅ Fixed | Updated to correct enum values | ✅ |
 | Lead Status Mapping | ✅ Fixed | Uses valid statuses now | ✅ |
+| Lead Status Centralization | ✅ Fixed | Single source in Lead model | ✅ |
 | Eager Loading | ✅ Good | Properly implemented | - |
 | Authorization | ✅ Good | Role-based access implemented | - |
 | Code Consistency | ✅ Fixed | Single source of truth | ✅ |
@@ -91,11 +92,41 @@ $validated = $request->validate([
 
 ---
 
-### 2.2 ⚠️ Lead Status Values Not Centralized (Future Improvement)
+### 2.2 ✅ FIXED: Lead Status Values Centralized
 
-**Observation:** Lead status values are still hardcoded in multiple places. This is a future improvement recommendation.
+**Previously:** Lead status values were hardcoded in multiple places (migrations, factories, controllers, views).
 
-**Current Status:** All status mappings are now using correct values, but could be further improved by centralizing to a single constant or enum.
+**Fix Applied:** Created centralized `STATUSES` constant in the `Lead` model with helper methods:
+
+**File:** [app/Models/Lead.php](../app/Models/Lead.php)
+
+```php
+public const STATUSES = [
+    'New' => ['label' => 'New', 'color' => 'gray', 'bg' => 'bg-gray-100', 'text' => 'text-gray-800'],
+    'Contacted' => ['label' => 'Contacted', 'color' => 'blue', 'bg' => 'bg-blue-100', 'text' => 'text-blue-800'],
+    'Qualified' => ['label' => 'Qualified', 'color' => 'indigo', 'bg' => 'bg-indigo-100', 'text' => 'text-indigo-800'],
+    'Negotiation' => ['label' => 'Negotiation', 'color' => 'orange', 'bg' => 'bg-orange-100', 'text' => 'text-orange-800'],
+    'Converted' => ['label' => 'Converted', 'color' => 'green', 'bg' => 'bg-green-100', 'text' => 'text-green-800'],
+    'Lost' => ['label' => 'Lost', 'color' => 'red', 'bg' => 'bg-red-100', 'text' => 'text-red-800'],
+];
+
+public static function getStatusValues(): array
+{
+    return array_keys(self::STATUSES);
+}
+
+public static function getStatusValidationRule(): string
+{
+    return 'in:' . implode(',', self::getStatusValues());
+}
+```
+
+**Files Updated:**
+- ✅ `app/Http/Requests/UpdateLeadRequest.php` - Now uses `Lead::getStatusValues()`
+- ✅ `app/Http/Controllers/LeadController.php` - Now uses `Lead::getStatusValidationRule()`
+- ✅ `database/factories/LeadFactory.php` - Added missing 'Negotiation' status
+- ✅ `resources/views/dashboard.blade.php` - Now uses `Lead::STATUSES`
+- ✅ `resources/views/users/show.blade.php` - Fixed inconsistent status colors
 
 ---
 
@@ -386,7 +417,7 @@ php artisan make:request StoreLeadContactRequest
 |----------|-------|------|--------|
 | ✅ P2 | Duplicate status constants (controller + model) | `FollowUp.php`, `Meeting.php` | **FIXED** |
 | ✅ P2 | Inconsistent status badge colors in reports | `reports/index.blade.php` | **FIXED** |
-| ⚠️ P2 | Lead statuses not centralized | Multiple | Future improvement |
+| ✅ P2 | Lead statuses not centralized | `Lead.php` + multiple files | **FIXED** |
 
 ---
 
@@ -415,9 +446,13 @@ All identified issues have been fixed. The codebase now demonstrates solid archi
 4. ✅ Moved User query from view to controller in leads index
 5. ✅ Removed duplicate constants from FollowUp and Meeting models
 6. ✅ Fixed status badge colors in reports view for consistency
+7. ✅ Centralized lead statuses in `Lead::STATUSES` constant with helper methods
+8. ✅ Updated dashboard to use centralized Lead statuses
+9. ✅ Fixed users/show.blade.php status color inconsistencies
 
 **Future Improvements (Optional):**
-1. Centralize all lead status definitions to a single constant or PHP enum
-2. Create Form Request classes for FollowUp, Meeting, and LeadContact controllers
+1. Create Form Request classes for FollowUp, Meeting, and LeadContact controllers
+2. Add composite indexes for frequently queried columns
+3. Consider adding SoftDeletes to FollowUp, Meeting, and LeadContact models
 
-The application now functions correctly with consistent lead status management across all features.
+The application now functions correctly with consistent lead status management across all features, with a single source of truth in the Lead model.

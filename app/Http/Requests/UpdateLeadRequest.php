@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Lead;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -30,7 +31,7 @@ class UpdateLeadRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255'],
             'source' => ['sometimes', Rule::in(['WhatsApp', 'Messenger', 'Website'])],
             'service_interested' => ['sometimes', Rule::in(['Website', 'Software', 'CRM', 'Marketing'])],
-            'status' => ['sometimes', Rule::in(['New', 'Contacted', 'Qualified', 'Negotiation', 'Converted', 'Lost'])],
+            'status' => ['sometimes', Rule::in(Lead::getStatusValues())],
             'priority' => ['sometimes', Rule::in(['High', 'Medium', 'Low'])],
             'assigned_to' => ['nullable', 'exists:users,id'],
             'initial_remarks' => ['nullable', 'string', 'max:1000'],

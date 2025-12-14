@@ -14,6 +14,35 @@ class Lead extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * Centralized Lead Status definitions.
+     * Single source of truth for all status-related logic.
+     */
+    public const STATUSES = [
+        'New' => ['label' => 'New', 'color' => 'gray', 'bg' => 'bg-gray-100', 'text' => 'text-gray-800'],
+        'Contacted' => ['label' => 'Contacted', 'color' => 'blue', 'bg' => 'bg-blue-100', 'text' => 'text-blue-800'],
+        'Qualified' => ['label' => 'Qualified', 'color' => 'indigo', 'bg' => 'bg-indigo-100', 'text' => 'text-indigo-800'],
+        'Negotiation' => ['label' => 'Negotiation', 'color' => 'orange', 'bg' => 'bg-orange-100', 'text' => 'text-orange-800'],
+        'Converted' => ['label' => 'Converted', 'color' => 'green', 'bg' => 'bg-green-100', 'text' => 'text-green-800'],
+        'Lost' => ['label' => 'Lost', 'color' => 'red', 'bg' => 'bg-red-100', 'text' => 'text-red-800'],
+    ];
+
+    /**
+     * Get valid status values for validation.
+     */
+    public static function getStatusValues(): array
+    {
+        return array_keys(self::STATUSES);
+    }
+
+    /**
+     * Get status validation rule string.
+     */
+    public static function getStatusValidationRule(): string
+    {
+        return 'in:'.implode(',', self::getStatusValues());
+    }
+
     protected $fillable = [
         'lead_number',
         'source',

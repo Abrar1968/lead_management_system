@@ -215,7 +215,7 @@ class LeadController extends Controller
         $validated = $request->validate([
             'lead_ids' => 'required|array|min:1',
             'lead_ids.*' => 'exists:leads,id',
-            'status' => 'required|in:New,Contacted,Qualified,Negotiation,Converted,Lost',
+            'status' => 'required|'.Lead::getStatusValidationRule(),
         ]);
 
         $count = Lead::whereIn('id', $validated['lead_ids'])

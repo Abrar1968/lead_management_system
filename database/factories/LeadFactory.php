@@ -36,7 +36,7 @@ class LeadFactory extends Factory
             'is_repeat_lead' => false,
             'previous_lead_ids' => null,
             'priority' => $this->faker->randomElement(['High', 'Medium', 'Low']),
-            'status' => $this->faker->randomElement(['New', 'Contacted', 'Qualified', 'Converted', 'Lost']),
+            'status' => $this->faker->randomElement(['New', 'Contacted', 'Qualified', 'Negotiation', 'Converted', 'Lost']),
             'assigned_to' => User::factory(),
         ];
     }

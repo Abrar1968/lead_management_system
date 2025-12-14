@@ -139,22 +139,15 @@
                     <h4 class="font-medium text-gray-700 mb-3">Lead Status Breakdown</h4>
                     <div class="space-y-2">
                         @php
-                            $statusColors = [
-                                'New' => 'gray',
-                                'Contacted' => 'blue',
-                                'Qualified' => 'indigo',
-                                'Negotiation' => 'orange',
-                                'Converted' => 'green',
-                                'Lost' => 'red'
-                            ];
+                            $leadStatuses = \App\Models\Lead::STATUSES;
                             $total = max($analytics['total_leads'], 1);
                         @endphp
-                        @foreach(['New', 'Contacted', 'Qualified', 'Negotiation', 'Converted', 'Lost'] as $status)
+                        @foreach($leadStatuses as $status => $config)
                             @php $count = $analytics['status_breakdown'][$status] ?? 0; @endphp
                             <div class="flex items-center gap-2">
                                 <span class="w-24 text-sm text-gray-600">{{ $status }}</span>
                                 <div class="flex-1 bg-gray-200 rounded-full h-2">
-                                    <div class="bg-{{ $statusColors[$status] ?? 'gray' }}-500 h-2 rounded-full" style="width: {{ ($count / $total) * 100 }}%"></div>
+                                    <div class="bg-{{ $config['color'] }}-500 h-2 rounded-full" style="width: {{ ($count / $total) * 100 }}%"></div>
                                 </div>
                                 <span class="w-8 text-sm text-gray-600 text-right">{{ $count }}</span>
                             </div>
