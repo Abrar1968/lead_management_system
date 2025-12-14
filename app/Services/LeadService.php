@@ -144,6 +144,10 @@ class LeadService
             $data['lead_number'] = $this->generateLeadNumber($leadDate);
         }
 
+        if (! isset($data['lead_time'])) {
+            $data['lead_time'] = now()->format('H:i');
+        }
+
         return $this->repository->create($data);
     }
 

@@ -24,7 +24,8 @@ class UpdateLeadRequest extends FormRequest
     {
         return [
             'lead_date' => ['sometimes', 'date', 'before_or_equal:today'],
-            'customer_name' => ['nullable', 'string', 'max:255'],
+            'client_name' => ['nullable', 'string', 'max:255'],
+            'lead_time' => ['sometimes', 'date_format:H:i'],
             'phone_number' => ['sometimes', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:255'],
             'source' => ['sometimes', Rule::in(['WhatsApp', 'Messenger', 'Website'])],

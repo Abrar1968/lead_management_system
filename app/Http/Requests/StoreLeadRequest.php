@@ -24,7 +24,8 @@ class StoreLeadRequest extends FormRequest
     {
         return [
             'lead_date' => ['required', 'date', 'before_or_equal:today'],
-            'customer_name' => ['nullable', 'string', 'max:255'],
+            'client_name' => ['nullable', 'string', 'max:255'],
+            'lead_time' => ['nullable', 'date_format:H:i'],
             'phone_number' => ['required', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:255'],
             'source' => ['required', Rule::in(['WhatsApp', 'Messenger', 'Website'])],
