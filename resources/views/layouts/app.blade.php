@@ -86,6 +86,47 @@
                             All Leads
                         </a>
 
+                        <!-- Divider -->
+                        <div class="pt-4 mt-4 border-t border-blue-800">
+                            <p class="px-4 text-xs text-blue-400 uppercase tracking-wider">Activity</p>
+
+                            <!-- Follow-ups -->
+                            <a href="{{ route('follow-ups.index') }}"
+                               class="flex items-center px-4 py-3 mt-2 text-white rounded-lg hover:bg-blue-800 {{ request()->routeIs('follow-ups.*') ? 'bg-blue-800' : '' }}">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Follow-ups
+                                @php
+                                    $pendingFollowUps = \App\Models\FollowUp::where('status', 'Pending')
+                                        ->where('follow_up_date', '<=', now()->format('Y-m-d'))
+                                        ->when(!auth()->user()->isAdmin(), fn($q) => $q->whereHas('lead', fn($q) => $q->where('assigned_to', auth()->id())))
+                                        ->count();
+                                @endphp
+                                @if($pendingFollowUps > 0)
+                                    <span class="ml-auto bg-orange-500 text-xs px-2 py-1 rounded-full">{{ $pendingFollowUps }}</span>
+                                @endif
+                            </a>
+
+                            <!-- Meetings -->
+                            <a href="{{ route('meetings.index') }}"
+                               class="flex items-center px-4 py-3 text-white rounded-lg hover:bg-blue-800 {{ request()->routeIs('meetings.*') ? 'bg-blue-800' : '' }}">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                Meetings
+                                @php
+                                    $todayMeetings = \App\Models\Meeting::where('meeting_date', now()->format('Y-m-d'))
+                                        ->where('outcome', 'Pending')
+                                        ->when(!auth()->user()->isAdmin(), fn($q) => $q->whereHas('lead', fn($q) => $q->where('assigned_to', auth()->id())))
+                                        ->count();
+                                @endphp
+                                @if($todayMeetings > 0)
+                                    <span class="ml-auto bg-indigo-500 text-xs px-2 py-1 rounded-full">{{ $todayMeetings }}</span>
+                                @endif
+                            </a>
+                        </div>
+
                         @if(auth()->user()->isAdmin())
                         <div class="pt-4 mt-4 border-t border-blue-800">
                             <p class="px-4 text-xs text-blue-400 uppercase tracking-wider">Admin</p>

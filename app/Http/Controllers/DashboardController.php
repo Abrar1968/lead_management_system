@@ -147,7 +147,7 @@ class DashboardController extends Controller
         // Get response counts
         $positiveResponses = LeadContact::whereBetween('call_date', [$startOfMonth, $endOfMonth])
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
-            ->whereIn('response_status', ['Yes', 'Interested', '80%', 'Demo Delivered'])
+            ->whereIn('response_status', ['Yes', 'Interested', '50%'])
             ->count();
 
         // Lead status breakdown

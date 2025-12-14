@@ -227,7 +227,8 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($meetings as $meeting)
-                        <tr class="hover:bg-gray-50" x-data="{ editing: false }">
+                        <tbody x-data="{ editing: false }">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <a href="{{ route('leads.show', $meeting->lead) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
                                     {{ $meeting->lead->client_name }}
@@ -259,7 +260,14 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3">
-                                <span class="px-2 py-1 text-xs rounded-full {{ $outcomes[$meeting->outcome]['bg'] ?? 'bg-gray-500' }} text-white">
+                                <span class="px-2 py-1 text-xs rounded-full
+                                    @if($meeting->outcome === 'Successful') bg-green-500 text-white
+                                    @elseif($meeting->outcome === 'Pending') bg-gray-400 text-white
+                                    @elseif($meeting->outcome === 'Follow-up Needed') bg-yellow-500 text-white
+                                    @elseif($meeting->outcome === 'Rescheduled') bg-blue-500 text-white
+                                    @elseif($meeting->outcome === 'Cancelled') bg-red-500 text-white
+                                    @elseif($meeting->outcome === 'No Show') bg-red-600 text-white
+                                    @else bg-gray-300 text-gray-800 @endif">
                                     {{ $meeting->outcome }}
                                 </span>
                             </td>
@@ -318,6 +326,7 @@
                                 </form>
                             </td>
                         </tr>
+                        </tbody>
                     @empty
                         <tr>
                             <td colspan="8" class="px-4 py-8 text-center text-gray-500">

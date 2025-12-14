@@ -138,11 +138,21 @@
                 <div>
                     <h4 class="font-medium text-gray-700 mb-3">Lead Status Breakdown</h4>
                     <div class="space-y-2">
-                        @php $statusColors = ['New' => 'blue', 'Cold' => 'gray', 'Warm' => 'yellow', 'Hot' => 'red', 'Lost' => 'gray', 'Converted' => 'green']; @endphp
-                        @foreach(['New', 'Cold', 'Warm', 'Hot', 'Lost', 'Converted'] as $status)
-                            @php $count = $analytics['status_breakdown'][$status] ?? 0; $total = max($analytics['total_leads'], 1); @endphp
+                        @php
+                            $statusColors = [
+                                'New' => 'gray',
+                                'Contacted' => 'blue',
+                                'Qualified' => 'indigo',
+                                'Negotiation' => 'orange',
+                                'Converted' => 'green',
+                                'Lost' => 'red'
+                            ];
+                            $total = max($analytics['total_leads'], 1);
+                        @endphp
+                        @foreach(['New', 'Contacted', 'Qualified', 'Negotiation', 'Converted', 'Lost'] as $status)
+                            @php $count = $analytics['status_breakdown'][$status] ?? 0; @endphp
                             <div class="flex items-center gap-2">
-                                <span class="w-20 text-sm text-gray-600">{{ $status }}</span>
+                                <span class="w-24 text-sm text-gray-600">{{ $status }}</span>
                                 <div class="flex-1 bg-gray-200 rounded-full h-2">
                                     <div class="bg-{{ $statusColors[$status] ?? 'gray' }}-500 h-2 rounded-full" style="width: {{ ($count / $total) * 100 }}%"></div>
                                 </div>
@@ -184,14 +194,12 @@
                 @php
                     $responseColors = [
                         'Yes' => 'bg-green-500',
-                        'No' => 'bg-red-500',
-                        'No Res.' => 'bg-gray-400',
+                        'Interested' => 'bg-green-600',
                         '50%' => 'bg-yellow-500',
                         'Call Later' => 'bg-blue-500',
+                        'No Response' => 'bg-gray-400',
+                        'No' => 'bg-red-500',
                         'Phone off' => 'bg-gray-500',
-                        '80%' => 'bg-orange-500',
-                        'Demo Delivered' => 'bg-purple-500',
-                        'Interested' => 'bg-green-600',
                     ];
                 @endphp
                 @foreach($responseBreakdown as $status => $count)
@@ -299,10 +307,12 @@
                                     {{ $lead->source }}
                                 </span>
                                 <span class="px-2 py-0.5 text-xs rounded-full
-                                    @if($lead->status === 'Hot') bg-red-100 text-red-700
-                                    @elseif($lead->status === 'Warm') bg-yellow-100 text-yellow-700
-                                    @elseif($lead->status === 'Cold') bg-blue-100 text-blue-700
+                                    @if($lead->status === 'New') bg-gray-100 text-gray-700
+                                    @elseif($lead->status === 'Contacted') bg-blue-100 text-blue-700
+                                    @elseif($lead->status === 'Qualified') bg-indigo-100 text-indigo-700
+                                    @elseif($lead->status === 'Negotiation') bg-orange-100 text-orange-700
                                     @elseif($lead->status === 'Converted') bg-green-100 text-green-700
+                                    @elseif($lead->status === 'Lost') bg-red-100 text-red-700
                                     @else bg-gray-100 text-gray-700 @endif">
                                     {{ $lead->status }}
                                 </span>

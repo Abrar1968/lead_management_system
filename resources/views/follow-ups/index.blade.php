@@ -281,7 +281,8 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($followUps as $followUp)
-                        <tr class="hover:bg-gray-50" x-data="{ editing: false }">
+                        <tbody x-data="{ editing: false }">
+                        <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <a href="{{ route('leads.show', $followUp->lead) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
                                     {{ $followUp->lead->client_name }}
@@ -390,6 +391,7 @@
                                 </form>
                             </td>
                         </tr>
+                        </tbody>
                     @empty
                         <tr>
                             <td colspan="8" class="px-4 py-8 text-center text-gray-500">
