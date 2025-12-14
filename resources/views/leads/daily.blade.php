@@ -242,6 +242,54 @@
                                     </span>
                                 </div>
 
+                                {{-- Follow-up & Meeting Stages --}}
+                                @php
+                                    $latestFollowUp = $lead->followUps->first();
+                                    $latestMeeting = $lead->meetings->first();
+                                @endphp
+                                @if($latestFollowUp || $latestMeeting)
+                                <div class="mt-2 flex flex-wrap gap-2 border-t pt-2">
+                                    @if($latestFollowUp)
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-xs text-gray-500">Follow-up:</span>
+                                            @if($latestFollowUp->interest)
+                                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                                                    {{ \App\Http\Controllers\FollowUpController::INTEREST_STATUSES[$latestFollowUp->interest]['bg'] ?? 'bg-gray-100' }}
+                                                    {{ \App\Http\Controllers\FollowUpController::INTEREST_STATUSES[$latestFollowUp->interest]['text'] ?? 'text-gray-800' }}">
+                                                    {{ $latestFollowUp->interest }}
+                                                </span>
+                                            @else
+                                                <span class="text-xs px-2 py-0.5 rounded-full {{ $latestFollowUp->status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700' }}">
+                                                    {{ $latestFollowUp->status }}
+                                                </span>
+                                            @endif
+                                            @if($latestFollowUp->price)
+                                                <span class="text-xs font-semibold text-green-600">৳{{ number_format($latestFollowUp->price, 0) }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                    @if($latestMeeting)
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-xs text-gray-500">Meeting:</span>
+                                            @if($latestMeeting->meeting_status)
+                                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                                                    {{ \App\Http\Controllers\MeetingController::MEETING_STATUSES[$latestMeeting->meeting_status]['bg'] ?? 'bg-gray-100' }}
+                                                    {{ \App\Http\Controllers\MeetingController::MEETING_STATUSES[$latestMeeting->meeting_status]['text'] ?? 'text-gray-800' }}">
+                                                    {{ $latestMeeting->meeting_status }}
+                                                </span>
+                                            @else
+                                                <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-800">
+                                                    {{ $latestMeeting->outcome }}
+                                                </span>
+                                            @endif
+                                            @if($latestMeeting->price)
+                                                <span class="text-xs font-semibold text-green-600">৳{{ number_format($latestMeeting->price, 0) }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+                                @endif
+
                                 {{-- Assigned To --}}
                                 <div class="mt-3 flex items-center justify-between border-t pt-3">
                                     <div class="flex items-center text-sm text-gray-500">

@@ -193,7 +193,11 @@ class LeadRepository
     public function getRecent(int $limit = 10, ?int $userId = null): Collection
     {
         $query = Lead::query()
-            ->with(['assignedTo'])
+            ->with(['assignedTo', 'followUps' => function ($q) {
+                $q->latest('follow_up_date');
+            }, 'meetings' => function ($q) {
+                $q->latest('meeting_date');
+            }])
             ->orderBy('created_at', 'desc')
             ->limit($limit);
 

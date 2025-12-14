@@ -71,7 +71,7 @@
             </div>
             <div class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
                 @foreach($overdueFollowUps as $followUp)
-                    <div class="px-4 py-3" x-data="{ showActions: false }">
+                    <div class="px-4 py-3" x-data="{ editing: false }">
                         <div class="flex justify-between items-start">
                             <a href="{{ route('leads.show', $followUp->lead) }}" class="block hover:text-blue-600">
                                 <p class="font-medium text-gray-900">{{ $followUp->lead->client_name }}</p>
@@ -79,22 +79,56 @@
                             </a>
                             <div class="text-right">
                                 <p class="text-xs text-red-600 font-medium">{{ $followUp->follow_up_date->format('M j') }}</p>
-                                <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($followUp->follow_up_time)->format('h:i A') }}</p>
+                                @if($followUp->price)
+                                    <p class="text-xs font-semibold text-green-600">৳{{ number_format($followUp->price, 0) }}</p>
+                                @endif
                             </div>
                         </div>
+                        @if($followUp->interest)
+                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium mt-1
+                                {{ $interestStatuses[$followUp->interest]['bg'] ?? 'bg-gray-100' }}
+                                {{ $interestStatuses[$followUp->interest]['text'] ?? 'text-gray-800' }}">
+                                {{ $followUp->interest }}
+                            </span>
+                        @endif
                         @if($followUp->notes)
                             <p class="text-xs text-gray-600 mt-1">{{ Str::limit($followUp->notes, 60) }}</p>
                         @endif
                         <div class="flex gap-2 mt-2">
-                            <form action="{{ route('follow-ups.complete', $followUp) }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">
-                                    ✓ Complete
-                                </button>
-                            </form>
+                            <button @click="editing = !editing" class="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200">
+                                ✎ Update
+                            </button>
                             <a href="{{ route('leads.show', $followUp->lead) }}" class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
                                 View Lead
                             </a>
+                        </div>
+                        <!-- Inline Edit Form -->
+                        <div x-show="editing" x-cloak class="mt-3 p-3 bg-gray-50 rounded-lg">
+                            <form action="{{ route('follow-ups.complete', $followUp) }}" method="POST" class="space-y-2">
+                                @csrf
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700">Interest</label>
+                                        <select name="interest" class="w-full text-sm rounded-md border-gray-300">
+                                            <option value="">Select...</option>
+                                            @foreach($interestStatuses as $key => $status)
+                                                <option value="{{ $key }}" {{ $followUp->interest === $key ? 'selected' : '' }}>{{ $status['label'] }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700">Price (৳)</label>
+                                        <input type="number" name="price" value="{{ $followUp->price }}" step="0.01" class="w-full text-sm rounded-md border-gray-300" placeholder="0.00">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-medium text-gray-700">Notes</label>
+                                    <textarea name="notes" rows="2" class="w-full text-sm rounded-md border-gray-300">{{ $followUp->notes }}</textarea>
+                                </div>
+                                <button type="submit" class="w-full text-sm px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700">
+                                    ✓ Complete Follow-up
+                                </button>
+                            </form>
                         </div>
                     </div>
                 @endforeach
@@ -109,33 +143,72 @@
             </div>
             <div class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
                 @forelse($todayFollowUps as $followUp)
-                    <div class="px-4 py-3">
+                    <div class="px-4 py-3" x-data="{ editing: false }">
                         <div class="flex justify-between items-start">
                             <a href="{{ route('leads.show', $followUp->lead) }}" class="block hover:text-blue-600">
                                 <p class="font-medium text-gray-900">{{ $followUp->lead->client_name }}</p>
                                 <p class="text-xs text-gray-500">{{ $followUp->lead->phone_number }}</p>
                             </a>
                             <div class="text-right">
-                                <p class="text-xs text-amber-600 font-medium">{{ \Carbon\Carbon::parse($followUp->follow_up_time)->format('h:i A') }}</p>
-                                <span class="text-xs px-2 py-0.5 rounded-full {{ $followUp->status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700' }}">
-                                    {{ $followUp->status }}
-                                </span>
+                                @if($followUp->follow_up_time)
+                                    <p class="text-xs text-amber-600 font-medium">{{ \Carbon\Carbon::parse($followUp->follow_up_time)->format('h:i A') }}</p>
+                                @endif
+                                @if($followUp->price)
+                                    <p class="text-xs font-semibold text-green-600">৳{{ number_format($followUp->price, 0) }}</p>
+                                @endif
                             </div>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1">
+                            @if($followUp->interest)
+                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                                    {{ $interestStatuses[$followUp->interest]['bg'] ?? 'bg-gray-100' }}
+                                    {{ $interestStatuses[$followUp->interest]['text'] ?? 'text-gray-800' }}">
+                                    {{ $followUp->interest }}
+                                </span>
+                            @endif
+                            <span class="text-xs px-2 py-0.5 rounded-full {{ $followUp->status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700' }}">
+                                {{ $followUp->status }}
+                            </span>
                         </div>
                         @if($followUp->notes)
                             <p class="text-xs text-gray-600 mt-1">{{ Str::limit($followUp->notes, 80) }}</p>
                         @endif
                         @if($followUp->status === 'Pending')
                         <div class="flex gap-2 mt-2">
-                            <form action="{{ route('follow-ups.complete', $followUp) }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">
-                                    ✓ Complete
-                                </button>
-                            </form>
+                            <button @click="editing = !editing" class="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200">
+                                ✎ Update
+                            </button>
                             <a href="{{ route('leads.show', $followUp->lead) }}" class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
                                 View Lead
                             </a>
+                        </div>
+                        <!-- Inline Edit Form -->
+                        <div x-show="editing" x-cloak class="mt-3 p-3 bg-gray-50 rounded-lg">
+                            <form action="{{ route('follow-ups.complete', $followUp) }}" method="POST" class="space-y-2">
+                                @csrf
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700">Interest</label>
+                                        <select name="interest" class="w-full text-sm rounded-md border-gray-300">
+                                            <option value="">Select...</option>
+                                            @foreach($interestStatuses as $key => $status)
+                                                <option value="{{ $key }}" {{ $followUp->interest === $key ? 'selected' : '' }}>{{ $status['label'] }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700">Price (৳)</label>
+                                        <input type="number" name="price" value="{{ $followUp->price }}" step="0.01" class="w-full text-sm rounded-md border-gray-300" placeholder="0.00">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-medium text-gray-700">Notes</label>
+                                    <textarea name="notes" rows="2" class="w-full text-sm rounded-md border-gray-300">{{ $followUp->notes }}</textarea>
+                                </div>
+                                <button type="submit" class="w-full text-sm px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700">
+                                    ✓ Complete Follow-up
+                                </button>
+                            </form>
                         </div>
                         @endif
                     </div>
@@ -159,10 +232,22 @@
                             <div>
                                 <p class="font-medium text-gray-900 text-sm">{{ $followUp->lead->client_name }}</p>
                                 <p class="text-xs text-gray-500">{{ $followUp->lead->phone_number }}</p>
+                                @if($followUp->interest)
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium mt-1
+                                        {{ $interestStatuses[$followUp->interest]['bg'] ?? 'bg-gray-100' }}
+                                        {{ $interestStatuses[$followUp->interest]['text'] ?? 'text-gray-800' }}">
+                                        {{ $followUp->interest }}
+                                    </span>
+                                @endif
                             </div>
                             <div class="text-right">
                                 <p class="text-xs text-blue-600 font-medium">{{ $followUp->follow_up_date->format('M j') }}</p>
-                                <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($followUp->follow_up_time)->format('h:i A') }}</p>
+                                @if($followUp->follow_up_time)
+                                    <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($followUp->follow_up_time)->format('h:i A') }}</p>
+                                @endif
+                                @if($followUp->price)
+                                    <p class="text-xs font-semibold text-green-600">৳{{ number_format($followUp->price, 0) }}</p>
+                                @endif
                             </div>
                         </div>
                     </a>
@@ -184,54 +269,130 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lead</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date & Time</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Interest</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($followUps as $followUp)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <a href="{{ route('leads.show', $followUp->lead) }}" class="hover:text-blue-600">
-                                    <p class="font-medium text-gray-900">{{ $followUp->lead->client_name }}</p>
-                                    <p class="text-sm text-gray-500">{{ $followUp->lead->phone_number }}</p>
+                        <tr class="hover:bg-gray-50" x-data="{ editing: false }">
+                            <td class="px-4 py-3">
+                                <a href="{{ route('leads.show', $followUp->lead) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                                    {{ $followUp->lead->client_name }}
                                 </a>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <p class="text-sm text-gray-900">{{ $followUp->follow_up_date->format('M j, Y') }}</p>
-                                <p class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($followUp->follow_up_time)->format('h:i A') }}</p>
+                            <td class="px-4 py-3 text-sm text-gray-600">
+                                {{ $followUp->lead->phone_number }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 text-xs rounded-full
-                                    @if($followUp->status === 'Completed') bg-green-100 text-green-700
-                                    @elseif($followUp->status === 'Cancelled') bg-red-100 text-red-700
-                                    @else bg-amber-100 text-amber-700 @endif">
+                            <td class="px-4 py-3">
+                                @if($followUp->interest)
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                                        {{ $interestStatuses[$followUp->interest]['bg'] ?? 'bg-gray-100' }}
+                                        {{ $interestStatuses[$followUp->interest]['text'] ?? 'text-gray-800' }}">
+                                        {{ $followUp->interest }}
+                                    </span>
+                                @else
+                                    <span class="text-gray-400 text-xs">-</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-sm">
+                                @if($followUp->price)
+                                    <span class="font-semibold text-green-600">৳{{ number_format($followUp->price, 0) }}</span>
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-600">
+                                {{ $followUp->follow_up_date->format('M j, Y') }}
+                                @if($followUp->follow_up_time)
+                                    <br><span class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($followUp->follow_up_time)->format('h:i A') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                                    @if($followUp->status === 'Completed') bg-green-100 text-green-800
+                                    @elseif($followUp->status === 'Cancelled') bg-red-100 text-red-800
+                                    @else bg-yellow-100 text-yellow-800 @endif">
                                     {{ $followUp->status }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4">
-                                <p class="text-sm text-gray-600">{{ Str::limit($followUp->notes, 50) }}</p>
+                            <td class="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+                                {{ Str::limit($followUp->notes, 40) }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                @if($followUp->status === 'Pending')
-                                    <form action="{{ route('follow-ups.complete', $followUp) }}" method="POST" class="inline">
+                            <td class="px-4 py-3 text-right">
+                                <div class="flex justify-end gap-1">
+                                    <button @click="editing = !editing" class="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                                        Edit
+                                    </button>
+                                    @if($followUp->status === 'Pending')
+                                        <form action="{{ route('follow-ups.complete', $followUp) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">
+                                                ✓
+                                            </button>
+                                        </form>
+                                    @endif
+                                    <form action="{{ route('follow-ups.destroy', $followUp) }}" method="POST" class="inline" onsubmit="return confirm('Delete this follow-up?')">
                                         @csrf
-                                        <button type="submit" class="text-green-600 hover:text-green-900 mr-3">Complete</button>
+                                        @method('DELETE')
+                                        <button type="submit" class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200">
+                                            ✕
+                                        </button>
                                     </form>
-                                @endif
-                                <form action="{{ route('follow-ups.destroy', $followUp) }}" method="POST" class="inline" onsubmit="return confirm('Delete this follow-up?')">
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- Inline Edit Row -->
+                        <tr x-show="editing" x-cloak class="bg-gray-50">
+                            <td colspan="8" class="px-4 py-3">
+                                <form action="{{ route('follow-ups.update', $followUp) }}" method="POST" class="flex flex-wrap gap-3 items-end">
                                     @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                                    @method('PATCH')
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700">Interest</label>
+                                        <select name="interest" class="text-sm rounded-md border-gray-300">
+                                            <option value="">Select...</option>
+                                            @foreach($interestStatuses as $key => $status)
+                                                <option value="{{ $key }}" {{ $followUp->interest === $key ? 'selected' : '' }}>{{ $status['label'] }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700">Price</label>
+                                        <input type="number" name="price" value="{{ $followUp->price }}" step="0.01" class="w-28 text-sm rounded-md border-gray-300" placeholder="0.00">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700">Date</label>
+                                        <input type="date" name="follow_up_date" value="{{ $followUp->follow_up_date->format('Y-m-d') }}" class="text-sm rounded-md border-gray-300">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700">Status</label>
+                                        <select name="status" class="text-sm rounded-md border-gray-300">
+                                            <option value="Pending" {{ $followUp->status === 'Pending' ? 'selected' : '' }}>Pending</option>
+                                            <option value="Completed" {{ $followUp->status === 'Completed' ? 'selected' : '' }}>Completed</option>
+                                            <option value="Cancelled" {{ $followUp->status === 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="text-xs font-medium text-gray-700">Notes</label>
+                                        <input type="text" name="notes" value="{{ $followUp->notes }}" class="w-full text-sm rounded-md border-gray-300">
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button type="submit" class="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">Save</button>
+                                        <button type="button" @click="editing = false" class="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300">Cancel</button>
+                                    </div>
                                 </form>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
                                 No follow-ups found.
                             </td>
                         </tr>

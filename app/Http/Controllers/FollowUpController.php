@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\FollowUp;
 use App\Models\Lead;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -13,18 +14,15 @@ use Illuminate\View\View;
 class FollowUpController extends Controller
 {
     /**
-     * Response status options matching the spreadsheet dropdown
+     * Interest status options matching the spreadsheet dropdown
      */
-    public const RESPONSE_STATUSES = [
-        'Yes' => ['label' => 'Yes', 'color' => 'green'],
-        'No' => ['label' => 'No', 'color' => 'red'],
-        'No Res.' => ['label' => 'No Response', 'color' => 'gray'],
-        '50%' => ['label' => '50% Interest', 'color' => 'yellow'],
-        'Call Later' => ['label' => 'Call Later', 'color' => 'blue'],
-        'Phone off' => ['label' => 'Phone Off', 'color' => 'gray'],
-        '80%' => ['label' => '80% Interest', 'color' => 'orange'],
-        'Demo Delivered' => ['label' => 'Demo Delivered', 'color' => 'purple'],
-        'Interested' => ['label' => 'Interested', 'color' => 'green'],
+    public const INTEREST_STATUSES = [
+        'Yes' => ['label' => 'Yes', 'color' => 'green', 'bg' => 'bg-green-100', 'text' => 'text-green-800'],
+        'No' => ['label' => 'No', 'color' => 'red', 'bg' => 'bg-red-100', 'text' => 'text-red-800'],
+        'No Response' => ['label' => 'No Response', 'color' => 'gray', 'bg' => 'bg-gray-100', 'text' => 'text-gray-800'],
+        '50%' => ['label' => '50%', 'color' => 'yellow', 'bg' => 'bg-yellow-100', 'text' => 'text-yellow-800'],
+        'Phone Off' => ['label' => 'Phone Off', 'color' => 'gray', 'bg' => 'bg-gray-100', 'text' => 'text-gray-600'],
+        'Call Later' => ['label' => 'Call Later', 'color' => 'blue', 'bg' => 'bg-blue-100', 'text' => 'text-blue-800'],
     ];
 
     /**
@@ -107,9 +105,10 @@ class FollowUpController extends Controller
             'overdueFollowUps' => $overdueFollowUps,
             'upcomingFollowUps' => $upcomingFollowUps,
             'stats' => $stats,
-            'statuses' => self::RESPONSE_STATUSES,
+            'interestStatuses' => self::INTEREST_STATUSES,
             'currentStatus' => $status,
             'currentDate' => $date,
+            'users' => User::all(),
         ]);
     }
 
@@ -122,7 +121,9 @@ class FollowUpController extends Controller
             'lead_id' => 'required|exists:leads,id',
             'follow_up_date' => 'required|date',
             'follow_up_time' => 'nullable|date_format:H:i',
-            'notes' => 'required|string|max:1000',
+            'notes' => 'nullable|string|max:1000',
+            'interest' => 'nullable|in:' . implode(',', array_keys(self::INTEREST_STATUSES)),
+            'price' => 'nullable|numeric|min:0',
             'status' => 'sometimes|in:Pending,Completed,Cancelled',
         ]);
 
@@ -130,7 +131,9 @@ class FollowUpController extends Controller
             'lead_id' => $validated['lead_id'],
             'follow_up_date' => $validated['follow_up_date'],
             'follow_up_time' => $validated['follow_up_time'] ?? null,
-            'notes' => $validated['notes'],
+            'notes' => $validated['notes'] ?? '',
+            'interest' => $validated['interest'] ?? null,
+            'price' => $validated['price'] ?? null,
             'status' => $validated['status'] ?? 'Pending',
             'created_by' => auth()->id(),
         ]);
@@ -150,11 +153,18 @@ class FollowUpController extends Controller
         $validated = $request->validate([
             'follow_up_date' => 'sometimes|date',
             'follow_up_time' => 'nullable|date_format:H:i',
-            'notes' => 'sometimes|string|max:1000',
+            'notes' => 'nullable|string|max:1000',
+            'interest' => 'nullable|in:' . implode(',', array_keys(self::INTEREST_STATUSES)),
+            'price' => 'nullable|numeric|min:0',
             'status' => 'sometimes|in:Pending,Completed,Cancelled',
         ]);
 
         $followUp->update($validated);
+
+        // Update lead status based on interest
+        if (isset($validated['interest'])) {
+            $this->updateLeadStatusFromInterest($followUp->lead, $validated['interest']);
+        }
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'followUp' => $followUp->fresh()]);
@@ -164,28 +174,45 @@ class FollowUpController extends Controller
     }
 
     /**
-     * Mark follow-up as complete with response status.
+     * Update lead status based on interest response.
+     */
+    protected function updateLeadStatusFromInterest(Lead $lead, string $interest): void
+    {
+        $statusMap = [
+            'Yes' => 'Qualified',
+            'No' => 'Lost',
+            '50%' => 'Negotiation',
+            'No Response' => 'Contacted',
+            'Phone Off' => 'Contacted',
+            'Call Later' => 'Contacted',
+        ];
+
+        if (isset($statusMap[$interest])) {
+            $lead->update(['status' => $statusMap[$interest]]);
+        }
+    }
+
+    /**
+     * Mark follow-up as complete with interest status.
      */
     public function complete(Request $request, FollowUp $followUp): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
-            'response_status' => 'required|string|in:' . implode(',', array_keys(self::RESPONSE_STATUSES)),
+            'interest' => 'nullable|in:' . implode(',', array_keys(self::INTEREST_STATUSES)),
+            'price' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:1000',
         ]);
 
         $followUp->update([
             'status' => 'Completed',
-            'notes' => $followUp->notes . "\n[Completed: " . $validated['response_status'] . '] ' . ($validated['notes'] ?? ''),
+            'interest' => $validated['interest'] ?? $followUp->interest,
+            'price' => $validated['price'] ?? $followUp->price,
+            'notes' => $validated['notes'] ?? $followUp->notes,
         ]);
 
-        // Also update the lead status based on response
-        $lead = $followUp->lead;
-        if (in_array($validated['response_status'], ['Yes', 'Interested', 'Demo Delivered'])) {
-            $lead->update(['status' => 'Hot']);
-        } elseif ($validated['response_status'] === 'No') {
-            $lead->update(['status' => 'Lost']);
-        } elseif (in_array($validated['response_status'], ['80%', '50%'])) {
-            $lead->update(['status' => 'Warm']);
+        // Update lead status based on interest
+        if (isset($validated['interest'])) {
+            $this->updateLeadStatusFromInterest($followUp->lead, $validated['interest']);
         }
 
         if ($request->wantsJson()) {

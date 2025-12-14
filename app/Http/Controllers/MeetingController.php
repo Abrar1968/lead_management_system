@@ -23,6 +23,16 @@ class MeetingController extends Controller
     ];
 
     /**
+     * Meeting statuses
+     */
+    public const MEETING_STATUSES = [
+        'Positive' => ['label' => 'Positive', 'color' => 'green', 'bg' => 'bg-green-100', 'text' => 'text-green-800'],
+        'Negative' => ['label' => 'Negative', 'color' => 'red', 'bg' => 'bg-red-100', 'text' => 'text-red-800'],
+        'Confirmed' => ['label' => 'Confirmed', 'color' => 'blue', 'bg' => 'bg-blue-100', 'text' => 'text-blue-800'],
+        'Pending' => ['label' => 'Pending', 'color' => 'yellow', 'bg' => 'bg-yellow-100', 'text' => 'text-yellow-800'],
+    ];
+
+    /**
      * Meeting outcomes
      */
     public const MEETING_OUTCOMES = [
@@ -97,6 +107,7 @@ class MeetingController extends Controller
             'upcomingMeetings' => $upcomingMeetings,
             'stats' => $stats,
             'meetingTypes' => self::MEETING_TYPES,
+            'meetingStatuses' => self::MEETING_STATUSES,
             'outcomes' => self::MEETING_OUTCOMES,
             'currentDate' => $date,
         ]);
@@ -109,18 +120,33 @@ class MeetingController extends Controller
     {
         $validated = $request->validate([
             'lead_id' => 'required|exists:leads,id',
+            'follow_up_id' => 'nullable|exists:follow_ups,id',
             'meeting_date' => 'required|date|after_or_equal:today',
             'meeting_time' => 'required|date_format:H:i',
             'meeting_type' => 'required|string|in:' . implode(',', array_keys(self::MEETING_TYPES)),
+            'meeting_status' => 'nullable|in:' . implode(',', array_keys(self::MEETING_STATUSES)),
+            'price' => 'nullable|numeric|min:0',
             'location' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:1000',
         ]);
 
+        // If follow_up_id provided, get price from follow-up
+        $price = $validated['price'] ?? null;
+        if (!empty($validated['follow_up_id'])) {
+            $followUp = \App\Models\FollowUp::find($validated['follow_up_id']);
+            if ($followUp && $followUp->price) {
+                $price = $followUp->price;
+            }
+        }
+
         $meeting = Meeting::create([
             'lead_id' => $validated['lead_id'],
+            'follow_up_id' => $validated['follow_up_id'] ?? null,
             'meeting_date' => $validated['meeting_date'],
             'meeting_time' => $validated['meeting_time'],
             'meeting_type' => $validated['meeting_type'],
+            'meeting_status' => $validated['meeting_status'] ?? 'Pending',
+            'price' => $price,
             'location' => $validated['location'] ?? null,
             'notes' => $validated['notes'] ?? null,
             'outcome' => 'Pending',
@@ -142,16 +168,18 @@ class MeetingController extends Controller
             'meeting_date' => 'sometimes|date',
             'meeting_time' => 'sometimes|date_format:H:i',
             'meeting_type' => 'sometimes|string|in:' . implode(',', array_keys(self::MEETING_TYPES)),
+            'meeting_status' => 'sometimes|in:' . implode(',', array_keys(self::MEETING_STATUSES)),
             'outcome' => 'sometimes|string|in:' . implode(',', array_keys(self::MEETING_OUTCOMES)),
+            'price' => 'nullable|numeric|min:0',
             'location' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:1000',
         ]);
 
         $meeting->update($validated);
 
-        // If meeting was successful, update lead status
-        if (isset($validated['outcome']) && $validated['outcome'] === 'Successful') {
-            $meeting->lead->update(['status' => 'Hot']);
+        // Update lead status based on meeting_status
+        if (isset($validated['meeting_status'])) {
+            $this->updateLeadStatusFromMeeting($meeting->lead, $validated['meeting_status']);
         }
 
         if ($request->wantsJson()) {
@@ -162,27 +190,46 @@ class MeetingController extends Controller
     }
 
     /**
-     * Update meeting outcome.
+     * Update lead status based on meeting status.
+     */
+    protected function updateLeadStatusFromMeeting(Lead $lead, string $meetingStatus): void
+    {
+        $statusMap = [
+            'Positive' => 'Qualified',
+            'Negative' => 'Lost',
+            'Confirmed' => 'Negotiation',
+            'Pending' => 'Contacted',
+        ];
+
+        if (isset($statusMap[$meetingStatus])) {
+            $lead->update(['status' => $statusMap[$meetingStatus]]);
+        }
+    }
+
+    /**
+     * Update meeting outcome and status.
      */
     public function updateOutcome(Request $request, Meeting $meeting): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
-            'outcome' => 'required|string|in:' . implode(',', array_keys(self::MEETING_OUTCOMES)),
+            'outcome' => 'sometimes|string|in:' . implode(',', array_keys(self::MEETING_OUTCOMES)),
+            'meeting_status' => 'sometimes|in:' . implode(',', array_keys(self::MEETING_STATUSES)),
+            'price' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:1000',
         ]);
 
         $meeting->update($validated);
 
-        // If meeting was successful, update lead status
-        if ($validated['outcome'] === 'Successful') {
-            $meeting->lead->update(['status' => 'Hot']);
+        // Update lead status based on meeting_status
+        if (isset($validated['meeting_status'])) {
+            $this->updateLeadStatusFromMeeting($meeting->lead, $validated['meeting_status']);
         }
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'meeting' => $meeting->fresh()]);
         }
 
-        return back()->with('success', 'Meeting outcome updated.');
+        return back()->with('success', 'Meeting updated.');
     }
 
     /**

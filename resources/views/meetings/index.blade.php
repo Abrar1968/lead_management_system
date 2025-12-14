@@ -51,10 +51,20 @@
                             </a>
                             <div class="text-right">
                                 <p class="text-sm font-medium text-indigo-600">{{ \Carbon\Carbon::parse($meeting->meeting_time)->format('h:i A') }}</p>
-                                <span class="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700">{{ $meeting->meeting_type }}</span>
+                                @if($meeting->price)
+                                    <p class="text-xs font-semibold text-green-600">৳{{ number_format($meeting->price, 0) }}</p>
+                                @endif
                             </div>
                         </div>
-                        <div class="mt-2 flex items-center justify-between">
+                        <div class="mt-2 flex items-center gap-2">
+                            <span class="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700">{{ $meeting->meeting_type }}</span>
+                            @if($meeting->meeting_status)
+                                <span class="text-xs px-2 py-1 rounded-full
+                                    {{ $meetingStatuses[$meeting->meeting_status]['bg'] ?? 'bg-gray-100' }}
+                                    {{ $meetingStatuses[$meeting->meeting_status]['text'] ?? 'text-gray-800' }}">
+                                    {{ $meeting->meeting_status }}
+                                </span>
+                            @endif
                             <span class="text-xs px-2 py-1 rounded-full
                                 @if($meeting->outcome === 'Successful') bg-green-100 text-green-700
                                 @elseif($meeting->outcome === 'Cancelled' || $meeting->outcome === 'No Show') bg-red-100 text-red-700
@@ -62,28 +72,47 @@
                                 @else bg-amber-100 text-amber-700 @endif">
                                 {{ $meeting->outcome }}
                             </span>
-
-                            @if($meeting->outcome === 'Pending')
-                                <button @click="showOutcome = !showOutcome" class="text-xs text-blue-600 hover:underline">
-                                    Update Outcome
-                                </button>
-                            @endif
                         </div>
+
+                        @if($meeting->outcome === 'Pending')
+                            <button @click="showOutcome = !showOutcome" class="mt-2 text-xs text-blue-600 hover:underline">
+                                Update Status & Outcome
+                            </button>
+                        @endif
 
                         <!-- Outcome Update Form -->
                         <div x-show="showOutcome" x-cloak class="mt-3 p-3 bg-gray-50 rounded-lg">
                             <form action="{{ route('meetings.update-outcome', $meeting) }}" method="POST" class="space-y-2">
                                 @csrf
-                                <select name="outcome" class="w-full text-sm rounded-md border-gray-300">
-                                    @foreach($outcomes as $key => $outcome)
-                                        <option value="{{ $key }}" {{ $meeting->outcome === $key ? 'selected' : '' }}>
-                                            {{ $outcome['label'] }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700">Meeting Status</label>
+                                        <select name="meeting_status" class="w-full text-sm rounded-md border-gray-300">
+                                            @foreach($meetingStatuses as $key => $status)
+                                                <option value="{{ $key }}" {{ $meeting->meeting_status === $key ? 'selected' : '' }}>
+                                                    {{ $status['label'] }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700">Outcome</label>
+                                        <select name="outcome" class="w-full text-sm rounded-md border-gray-300">
+                                            @foreach($outcomes as $key => $outcome)
+                                                <option value="{{ $key }}" {{ $meeting->outcome === $key ? 'selected' : '' }}>
+                                                    {{ $outcome['label'] }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-medium text-gray-700">Price (৳)</label>
+                                    <input type="number" name="price" value="{{ $meeting->price }}" step="0.01" class="w-full text-sm rounded-md border-gray-300" placeholder="0.00">
+                                </div>
                                 <textarea name="notes" placeholder="Notes..." rows="2" class="w-full text-sm rounded-md border-gray-300">{{ $meeting->notes }}</textarea>
                                 <button type="submit" class="w-full text-sm px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700">
-                                    Save Outcome
+                                    Save Changes
                                 </button>
                             </form>
                         </div>
@@ -107,11 +136,23 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="font-medium text-gray-900 text-sm">{{ $meeting->lead->client_name }}</p>
-                                <span class="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700">{{ $meeting->meeting_type }}</span>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700">{{ $meeting->meeting_type }}</span>
+                                    @if($meeting->meeting_status)
+                                        <span class="text-xs px-2 py-0.5 rounded-full
+                                            {{ $meetingStatuses[$meeting->meeting_status]['bg'] ?? 'bg-gray-100' }}
+                                            {{ $meetingStatuses[$meeting->meeting_status]['text'] ?? 'text-gray-800' }}">
+                                            {{ $meeting->meeting_status }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                             <div class="text-right">
                                 <p class="text-xs text-blue-600 font-medium">{{ $meeting->meeting_date->format('M j') }}</p>
                                 <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($meeting->meeting_time)->format('h:i A') }}</p>
+                                @if($meeting->price)
+                                    <p class="text-xs font-semibold text-green-600">৳{{ number_format($meeting->price, 0) }}</p>
+                                @endif
                             </div>
                         </div>
                     </a>
@@ -133,12 +174,12 @@
                     class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Meeting Type</label>
-                <select name="meeting_type" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="">All Types</option>
-                    @foreach($meetingTypes as $key => $type)
-                        <option value="{{ $key }}" {{ request('meeting_type') === $key ? 'selected' : '' }}>
-                            {{ $type['label'] }}
+                <label class="block text-sm font-medium text-gray-700 mb-1">Meeting Status</label>
+                <select name="meeting_status" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">All Statuses</option>
+                    @foreach($meetingStatuses as $key => $status)
+                        <option value="{{ $key }}" {{ request('meeting_status') === $key ? 'selected' : '' }}>
+                            {{ $status['label'] }}
                         </option>
                     @endforeach
                 </select>
@@ -174,51 +215,112 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lead</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date & Time</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Outcome</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Meeting Time</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Outcome</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($meetings as $meeting)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <a href="{{ route('leads.show', $meeting->lead) }}" class="hover:text-blue-600">
-                                    <p class="font-medium text-gray-900">{{ $meeting->lead->client_name }}</p>
-                                    <p class="text-sm text-gray-500">{{ $meeting->lead->phone_number }}</p>
+                        <tr class="hover:bg-gray-50" x-data="{ editing: false }">
+                            <td class="px-4 py-3">
+                                <a href="{{ route('leads.show', $meeting->lead) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                                    {{ $meeting->lead->client_name }}
                                 </a>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <p class="text-sm text-gray-900">{{ $meeting->meeting_date->format('M j, Y') }}</p>
-                                <p class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($meeting->meeting_time)->format('h:i A') }}</p>
+                            <td class="px-4 py-3 text-sm text-gray-600">
+                                {{ $meeting->lead->phone_number }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 text-xs rounded bg-purple-100 text-purple-700">
-                                    {{ $meeting->meeting_type }}
-                                </span>
+                            <td class="px-4 py-3 text-sm">
+                                <p class="text-gray-900">{{ $meeting->meeting_date->format('M j, Y') }}</p>
+                                <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($meeting->meeting_time)->format('h:i A') }}</p>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-4 py-3">
+                                @if($meeting->meeting_status)
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                                        {{ $meetingStatuses[$meeting->meeting_status]['bg'] ?? 'bg-gray-100' }}
+                                        {{ $meetingStatuses[$meeting->meeting_status]['text'] ?? 'text-gray-800' }}">
+                                        {{ $meeting->meeting_status }}
+                                    </span>
+                                @else
+                                    <span class="text-gray-400 text-xs">-</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-sm">
+                                @if($meeting->price)
+                                    <span class="font-semibold text-green-600">৳{{ number_format($meeting->price, 0) }}</span>
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3">
                                 <span class="px-2 py-1 text-xs rounded-full {{ $outcomes[$meeting->outcome]['bg'] ?? 'bg-gray-500' }} text-white">
                                     {{ $meeting->outcome }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4">
-                                <p class="text-sm text-gray-600">{{ Str::limit($meeting->notes, 50) }}</p>
+                            <td class="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+                                {{ Str::limit($meeting->notes, 40) }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <form action="{{ route('meetings.destroy', $meeting) }}" method="POST" class="inline" onsubmit="return confirm('Delete this meeting?')">
+                            <td class="px-4 py-3 text-right">
+                                <div class="flex justify-end gap-1">
+                                    <button @click="editing = !editing" class="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                                        Edit
+                                    </button>
+                                    <form action="{{ route('meetings.destroy', $meeting) }}" method="POST" class="inline" onsubmit="return confirm('Delete this meeting?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200">
+                                            ✕
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- Inline Edit Row -->
+                        <tr x-show="editing" x-cloak class="bg-gray-50">
+                            <td colspan="8" class="px-4 py-3">
+                                <form action="{{ route('meetings.update', $meeting) }}" method="POST" class="flex flex-wrap gap-3 items-end">
                                     @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                                    @method('PATCH')
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700">Meeting Status</label>
+                                        <select name="meeting_status" class="text-sm rounded-md border-gray-300">
+                                            @foreach($meetingStatuses as $key => $status)
+                                                <option value="{{ $key }}" {{ $meeting->meeting_status === $key ? 'selected' : '' }}>{{ $status['label'] }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700">Price</label>
+                                        <input type="number" name="price" value="{{ $meeting->price }}" step="0.01" class="w-28 text-sm rounded-md border-gray-300" placeholder="0.00">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-medium text-gray-700">Outcome</label>
+                                        <select name="outcome" class="text-sm rounded-md border-gray-300">
+                                            @foreach($outcomes as $key => $outcome)
+                                                <option value="{{ $key }}" {{ $meeting->outcome === $key ? 'selected' : '' }}>{{ $outcome['label'] }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="text-xs font-medium text-gray-700">Notes</label>
+                                        <input type="text" name="notes" value="{{ $meeting->notes }}" class="w-full text-sm rounded-md border-gray-300">
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button type="submit" class="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700">Save</button>
+                                        <button type="button" @click="editing = false" class="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300">Cancel</button>
+                                    </div>
                                 </form>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
                                 No meetings found for this date.
                             </td>
                         </tr>

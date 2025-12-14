@@ -122,6 +122,12 @@
                                     Status
                                 </th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    Follow-up
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                    Meeting
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                                     Assigned To
                                 </th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -179,6 +185,52 @@
                                             @endswitch">
                                             {{ $lead->status }}
                                         </span>
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4">
+                                        @php
+                                            $latestFollowUp = $lead->followUps->first();
+                                            $followUpCount = $lead->followUps->count();
+                                        @endphp
+                                        @if($latestFollowUp)
+                                            <div class="space-y-1">
+                                                @if($latestFollowUp->interest)
+                                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                                                        {{ \App\Http\Controllers\FollowUpController::INTEREST_STATUSES[$latestFollowUp->interest]['bg'] ?? 'bg-gray-100' }}
+                                                        {{ \App\Http\Controllers\FollowUpController::INTEREST_STATUSES[$latestFollowUp->interest]['text'] ?? 'text-gray-800' }}">
+                                                        {{ $latestFollowUp->interest }}
+                                                    </span>
+                                                @endif
+                                                @if($latestFollowUp->price)
+                                                    <span class="block text-xs font-semibold text-green-600">৳{{ number_format($latestFollowUp->price, 0) }}</span>
+                                                @endif
+                                                <span class="block text-xs text-gray-500">{{ $followUpCount }} follow-up{{ $followUpCount > 1 ? 's' : '' }}</span>
+                                            </div>
+                                        @else
+                                            <span class="text-xs text-gray-400">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4">
+                                        @php
+                                            $latestMeeting = $lead->meetings->first();
+                                            $meetingCount = $lead->meetings->count();
+                                        @endphp
+                                        @if($latestMeeting)
+                                            <div class="space-y-1">
+                                                @if($latestMeeting->meeting_status)
+                                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                                                        {{ \App\Http\Controllers\MeetingController::MEETING_STATUSES[$latestMeeting->meeting_status]['bg'] ?? 'bg-gray-100' }}
+                                                        {{ \App\Http\Controllers\MeetingController::MEETING_STATUSES[$latestMeeting->meeting_status]['text'] ?? 'text-gray-800' }}">
+                                                        {{ $latestMeeting->meeting_status }}
+                                                    </span>
+                                                @endif
+                                                @if($latestMeeting->price)
+                                                    <span class="block text-xs font-semibold text-green-600">৳{{ number_format($latestMeeting->price, 0) }}</span>
+                                                @endif
+                                                <span class="block text-xs text-gray-500">{{ $meetingCount }} meeting{{ $meetingCount > 1 ? 's' : '' }}</span>
+                                            </div>
+                                        @else
+                                            <span class="text-xs text-gray-400">-</span>
+                                        @endif
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                                         {{ $lead->assignedTo?->name ?? 'Unassigned' }}
