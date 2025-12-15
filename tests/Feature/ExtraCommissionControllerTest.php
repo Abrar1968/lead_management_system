@@ -12,14 +12,14 @@ describe('Extra Commission Index', function () {
     test('admin can view extra commissions list', function () {
         ExtraCommission::factory()->count(5)->create();
 
-        $response = $this->actingAs($this->admin)->get(route('extra-commissions.index'));
+        $response = $this->actingAs($this->admin)->get(route('admin.extra-commissions.index'));
 
         $response->assertOk();
         $response->assertViewIs('admin.extra-commissions.index');
     });
 
     test('sales person cannot access extra commissions list', function () {
-        $response = $this->actingAs($this->salesPerson)->get(route('extra-commissions.index'));
+        $response = $this->actingAs($this->salesPerson)->get(route('admin.extra-commissions.index'));
 
         $response->assertForbidden();
     });
@@ -29,7 +29,7 @@ describe('Extra Commission Index', function () {
         ExtraCommission::factory()->approved()->create();
 
         $response = $this->actingAs($this->admin)
-            ->get(route('extra-commissions.index', ['status' => 'Pending']));
+            ->get(route('admin.extra-commissions.index', ['status' => 'Pending']));
 
         $response->assertOk();
     });
@@ -37,7 +37,7 @@ describe('Extra Commission Index', function () {
 
 describe('Extra Commission Create', function () {
     test('admin can view create form', function () {
-        $response = $this->actingAs($this->admin)->get(route('extra-commissions.create'));
+        $response = $this->actingAs($this->admin)->get(route('admin.extra-commissions.create'));
 
         $response->assertOk();
         $response->assertViewIs('admin.extra-commissions.create');
@@ -45,7 +45,7 @@ describe('Extra Commission Create', function () {
 
     test('admin can create extra commission', function () {
         $response = $this->actingAs($this->admin)
-            ->post(route('extra-commissions.store'), [
+            ->post(route('admin.extra-commissions.store'), [
                 'user_id' => $this->salesPerson->id,
                 'commission_type' => 'Bonus',
                 'amount' => 1000,
@@ -53,7 +53,7 @@ describe('Extra Commission Create', function () {
                 'description' => 'Performance bonus',
             ]);
 
-        $response->assertRedirect(route('extra-commissions.index'));
+        $response->assertRedirect(route('admin.extra-commissions.index'));
         $response->assertSessionHas('success');
 
         $this->assertDatabaseHas('extra_commissions', [
@@ -66,7 +66,7 @@ describe('Extra Commission Create', function () {
 
     test('validation fails with invalid user', function () {
         $response = $this->actingAs($this->admin)
-            ->post(route('extra-commissions.store'), [
+            ->post(route('admin.extra-commissions.store'), [
                 'user_id' => 9999,
                 'commission_type' => 'Bonus',
                 'amount' => 1000,
@@ -82,7 +82,7 @@ describe('Extra Commission Approve', function () {
         $commission = ExtraCommission::factory()->pending()->create();
 
         $response = $this->actingAs($this->admin)
-            ->post(route('extra-commissions.approve', $commission));
+            ->post(route('admin.extra-commissions.approve', $commission));
 
         $response->assertRedirect();
         $response->assertSessionHas('success');
@@ -100,7 +100,7 @@ describe('Extra Commission Mark Paid', function () {
         $commission = ExtraCommission::factory()->approved()->create();
 
         $response = $this->actingAs($this->admin)
-            ->post(route('extra-commissions.mark-paid', $commission));
+            ->post(route('admin.extra-commissions.mark-paid', $commission));
 
         $response->assertRedirect();
         $response->assertSessionHas('success');
@@ -117,7 +117,7 @@ describe('Extra Commission Delete', function () {
         $commission = ExtraCommission::factory()->create();
 
         $response = $this->actingAs($this->admin)
-            ->delete(route('extra-commissions.destroy', $commission));
+            ->delete(route('admin.extra-commissions.destroy', $commission));
 
         $response->assertRedirect();
 

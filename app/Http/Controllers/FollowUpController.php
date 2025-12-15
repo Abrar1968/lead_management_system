@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\FollowUp;
 use App\Models\Lead;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,6 +34,7 @@ class FollowUpController extends Controller
         $status = $request->input('status', 'all');
 
         $query = FollowUp::with(['lead', 'lead.assignedTo', 'createdBy'])
+            ->whereHas('lead')
             ->orderBy('follow_up_date', 'desc')
             ->orderBy('follow_up_time', 'asc');
 
@@ -60,6 +60,7 @@ class FollowUpController extends Controller
         $todayFollowUps = FollowUp::with(['lead', 'lead.assignedTo'])
             ->whereDate('follow_up_date', today())
             ->where('status', 'Pending')
+            ->whereHas('lead')
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
             ->orderBy('follow_up_time')
             ->get();
@@ -68,6 +69,7 @@ class FollowUpController extends Controller
         $overdueFollowUps = FollowUp::with(['lead', 'lead.assignedTo'])
             ->whereDate('follow_up_date', '<', today())
             ->where('status', 'Pending')
+            ->whereHas('lead')
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
             ->orderBy('follow_up_date')
             ->get();
@@ -80,10 +82,12 @@ class FollowUpController extends Controller
             'overdue' => $overdueFollowUps->count(),
             'this_week' => FollowUp::where('status', 'Pending')
                 ->whereBetween('follow_up_date', [today(), today()->addDays(7)])
+                ->whereHas('lead')
                 ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
                 ->count(),
             'completed_today' => FollowUp::whereDate('updated_at', today())
                 ->where('status', 'Completed')
+                ->whereHas('lead')
                 ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
                 ->count(),
         ];
@@ -122,7 +126,7 @@ class FollowUpController extends Controller
             'follow_up_date' => 'required|date',
             'follow_up_time' => 'nullable|date_format:H:i',
             'notes' => 'nullable|string|max:1000',
-            'interest' => 'nullable|in:' . implode(',', array_keys(self::INTEREST_STATUSES)),
+            'interest' => 'nullable|in:'.implode(',', array_keys(self::INTEREST_STATUSES)),
             'price' => 'nullable|numeric|min:0',
             'status' => 'sometimes|in:Pending,Completed,Cancelled',
         ]);
@@ -154,7 +158,7 @@ class FollowUpController extends Controller
             'follow_up_date' => 'sometimes|date',
             'follow_up_time' => 'nullable|date_format:H:i',
             'notes' => 'nullable|string|max:1000',
-            'interest' => 'nullable|in:' . implode(',', array_keys(self::INTEREST_STATUSES)),
+            'interest' => 'nullable|in:'.implode(',', array_keys(self::INTEREST_STATUSES)),
             'price' => 'nullable|numeric|min:0',
             'status' => 'sometimes|in:Pending,Completed,Cancelled',
         ]);
@@ -198,7 +202,7 @@ class FollowUpController extends Controller
     public function complete(Request $request, FollowUp $followUp): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
-            'interest' => 'nullable|in:' . implode(',', array_keys(self::INTEREST_STATUSES)),
+            'interest' => 'nullable|in:'.implode(',', array_keys(self::INTEREST_STATUSES)),
             'price' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:1000',
         ]);

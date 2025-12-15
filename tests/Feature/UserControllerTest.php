@@ -141,6 +141,17 @@ describe('User Edit', function () {
 });
 
 describe('User Delete', function () {
+    test('admin can view delete confirmation page', function () {
+        $userToDelete = User::factory()->create();
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('users.delete', $userToDelete));
+
+        $response->assertOk();
+        $response->assertViewIs('users.delete');
+        $response->assertViewHas('user');
+    });
+
     test('admin can delete a user without leads', function () {
         $userToDelete = User::factory()->create();
 
@@ -170,5 +181,14 @@ describe('User Delete', function () {
 
         $response->assertRedirect();
         $response->assertSessionHas('error');
+    });
+
+    test('sales person cannot access delete page', function () {
+        $userToDelete = User::factory()->create();
+
+        $response = $this->actingAs($this->salesPerson)
+            ->get(route('users.delete', $userToDelete));
+
+        $response->assertForbidden();
     });
 });

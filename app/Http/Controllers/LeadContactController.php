@@ -35,6 +35,7 @@ class LeadContactController extends Controller
         $date = $request->input('date', now()->format('Y-m-d'));
 
         $query = LeadContact::with(['lead', 'lead.assignedTo', 'caller'])
+            ->whereHas('lead')
             ->orderBy('call_date', 'desc')
             ->orderBy('call_time', 'desc');
 
@@ -57,11 +58,13 @@ class LeadContactController extends Controller
 
         // Today's calls
         $todayCalls = LeadContact::whereDate('call_date', today())
+            ->whereHas('lead')
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
             ->count();
 
         // Response breakdown for today
         $responseBreakdown = LeadContact::whereDate('call_date', today())
+            ->whereHas('lead')
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
             ->selectRaw('response_status, COUNT(*) as count')
             ->groupBy('response_status')

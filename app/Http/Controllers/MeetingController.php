@@ -53,6 +53,7 @@ class MeetingController extends Controller
         $date = $request->input('date', now()->format('Y-m-d'));
 
         $query = Meeting::with(['lead', 'lead.assignedTo'])
+            ->whereHas('lead')
             ->orderBy('meeting_date', 'desc')
             ->orderBy('meeting_time', 'desc');
 
@@ -80,6 +81,7 @@ class MeetingController extends Controller
 
         // Today's meetings
         $todayMeetings = Meeting::whereDate('meeting_date', today())
+            ->whereHas('lead')
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
             ->get();
 
@@ -87,6 +89,7 @@ class MeetingController extends Controller
         $upcomingMeetings = Meeting::whereDate('meeting_date', '>', today())
             ->whereDate('meeting_date', '<=', now()->addDays(7))
             ->where('outcome', 'Pending')
+            ->whereHas('lead')
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
             ->with(['lead'])
             ->orderBy('meeting_date')
@@ -123,8 +126,8 @@ class MeetingController extends Controller
             'follow_up_id' => 'nullable|exists:follow_ups,id',
             'meeting_date' => 'required|date|after_or_equal:today',
             'meeting_time' => 'required|date_format:H:i',
-            'meeting_type' => 'required|string|in:' . implode(',', array_keys(self::MEETING_TYPES)),
-            'meeting_status' => 'nullable|in:' . implode(',', array_keys(self::MEETING_STATUSES)),
+            'meeting_type' => 'required|string|in:'.implode(',', array_keys(self::MEETING_TYPES)),
+            'meeting_status' => 'nullable|in:'.implode(',', array_keys(self::MEETING_STATUSES)),
             'price' => 'nullable|numeric|min:0',
             'location' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:1000',
@@ -132,7 +135,7 @@ class MeetingController extends Controller
 
         // If follow_up_id provided, get price from follow-up
         $price = $validated['price'] ?? null;
-        if (!empty($validated['follow_up_id'])) {
+        if (! empty($validated['follow_up_id'])) {
             $followUp = \App\Models\FollowUp::find($validated['follow_up_id']);
             if ($followUp && $followUp->price) {
                 $price = $followUp->price;
@@ -167,9 +170,9 @@ class MeetingController extends Controller
         $validated = $request->validate([
             'meeting_date' => 'sometimes|date',
             'meeting_time' => 'sometimes|date_format:H:i',
-            'meeting_type' => 'sometimes|string|in:' . implode(',', array_keys(self::MEETING_TYPES)),
-            'meeting_status' => 'sometimes|in:' . implode(',', array_keys(self::MEETING_STATUSES)),
-            'outcome' => 'sometimes|string|in:' . implode(',', array_keys(self::MEETING_OUTCOMES)),
+            'meeting_type' => 'sometimes|string|in:'.implode(',', array_keys(self::MEETING_TYPES)),
+            'meeting_status' => 'sometimes|in:'.implode(',', array_keys(self::MEETING_STATUSES)),
+            'outcome' => 'sometimes|string|in:'.implode(',', array_keys(self::MEETING_OUTCOMES)),
             'price' => 'nullable|numeric|min:0',
             'location' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:1000',
@@ -212,8 +215,8 @@ class MeetingController extends Controller
     public function updateOutcome(Request $request, Meeting $meeting): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
-            'outcome' => 'sometimes|string|in:' . implode(',', array_keys(self::MEETING_OUTCOMES)),
-            'meeting_status' => 'sometimes|in:' . implode(',', array_keys(self::MEETING_STATUSES)),
+            'outcome' => 'sometimes|string|in:'.implode(',', array_keys(self::MEETING_OUTCOMES)),
+            'meeting_status' => 'sometimes|in:'.implode(',', array_keys(self::MEETING_STATUSES)),
             'price' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:1000',
         ]);
@@ -267,7 +270,7 @@ class MeetingController extends Controller
         $validated = $request->validate([
             'meeting_date' => 'required|date|after_or_equal:today',
             'meeting_time' => 'required|date_format:H:i',
-            'meeting_type' => 'required|string|in:' . implode(',', array_keys(self::MEETING_TYPES)),
+            'meeting_type' => 'required|string|in:'.implode(',', array_keys(self::MEETING_TYPES)),
             'notes' => 'nullable|string|max:1000',
         ]);
 

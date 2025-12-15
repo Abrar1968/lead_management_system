@@ -33,14 +33,16 @@ class ReportController extends Controller
         $totalLeads = $leadsQuery->count();
 
         // Calls made
-        $callsQuery = LeadContact::whereBetween('call_date', [$startDate, $endDate]);
+        $callsQuery = LeadContact::whereBetween('call_date', [$startDate, $endDate])
+            ->whereHas('lead');
         if (! $isAdmin) {
             $callsQuery->where('contacted_by', $user->id);
         }
         $totalCalls = $callsQuery->count();
 
         // Conversions
-        $conversionsQuery = Conversion::whereBetween('conversion_date', [$startDate, $endDate]);
+        $conversionsQuery = Conversion::whereBetween('conversion_date', [$startDate, $endDate])
+            ->whereHas('lead');
         if (! $isAdmin) {
             $conversionsQuery->where('converted_by', $user->id);
         }
@@ -139,14 +141,16 @@ class ReportController extends Controller
         $totalLeads = $leadsQuery->count();
 
         // Calls made
-        $callsQuery = LeadContact::whereBetween('call_date', [$startDate, $endDate]);
+        $callsQuery = LeadContact::whereBetween('call_date', [$startDate, $endDate])
+            ->whereHas('lead');
         if (! $isAdmin) {
             $callsQuery->where('contacted_by', $user->id);
         }
         $totalCalls = $callsQuery->count();
 
         // Conversions
-        $conversionsQuery = Conversion::whereBetween('conversion_date', [$startDate, $endDate]);
+        $conversionsQuery = Conversion::whereBetween('conversion_date', [$startDate, $endDate])
+            ->whereHas('lead');
         if (! $isAdmin) {
             $conversionsQuery->where('converted_by', $user->id);
         }

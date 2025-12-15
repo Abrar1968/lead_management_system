@@ -73,6 +73,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::resource('users', UserController::class);
 
+    // User Delete Confirmation Page
+    Route::get('/users/{user}/delete', [UserController::class, 'delete'])->name('users.delete');
+
     // Bulk Lead Reassignment from User
     Route::post('/users/bulk-reassign-leads', [UserController::class, 'bulkReassignLeads'])->name('users.bulk-reassign-leads');
 
@@ -82,9 +85,17 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::post('/leads/bulk-status', [LeadController::class, 'bulkUpdateStatus'])->name('leads.bulk-status');
 
     // Extra Commissions Management
-    Route::resource('extra-commissions', ExtraCommissionController::class);
-    Route::post('/extra-commissions/{extraCommission}/approve', [ExtraCommissionController::class, 'approve'])->name('extra-commissions.approve');
-    Route::post('/extra-commissions/{extraCommission}/mark-paid', [ExtraCommissionController::class, 'markPaid'])->name('extra-commissions.mark-paid');
+    Route::resource('extra-commissions', ExtraCommissionController::class)->names([
+        'index' => 'admin.extra-commissions.index',
+        'create' => 'admin.extra-commissions.create',
+        'store' => 'admin.extra-commissions.store',
+        'show' => 'admin.extra-commissions.show',
+        'edit' => 'admin.extra-commissions.edit',
+        'update' => 'admin.extra-commissions.update',
+        'destroy' => 'admin.extra-commissions.destroy',
+    ]);
+    Route::post('/extra-commissions/{extraCommission}/approve', [ExtraCommissionController::class, 'approve'])->name('admin.extra-commissions.approve');
+    Route::post('/extra-commissions/{extraCommission}/mark-paid', [ExtraCommissionController::class, 'markPaid'])->name('admin.extra-commissions.mark-paid');
 });
 
 // Profile Routes

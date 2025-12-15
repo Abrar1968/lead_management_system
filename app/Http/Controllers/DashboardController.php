@@ -19,9 +19,9 @@ class DashboardController extends Controller
 
         // Today's Stats
         $todayLeadsQuery = Lead::whereDate('lead_date', $today);
-        $todayCallsQuery = LeadContact::whereDate('call_date', $today);
-        $todayConversionsQuery = Conversion::whereDate('conversion_date', $today);
-        $todayMeetingsQuery = Meeting::whereDate('meeting_date', $today);
+        $todayCallsQuery = LeadContact::whereDate('call_date', $today)->whereHas('lead');
+        $todayConversionsQuery = Conversion::whereDate('conversion_date', $today)->whereHas('lead');
+        $todayMeetingsQuery = Meeting::whereDate('meeting_date', $today)->whereHas('lead');
 
         // If sales person, filter by their leads only
         if ($user->isSalesPerson()) {
@@ -37,6 +37,7 @@ class DashboardController extends Controller
             'today_meetings' => $todayMeetingsQuery->count(),
             'pending_follow_ups' => FollowUp::where('status', 'Pending')
                 ->whereDate('follow_up_date', '<=', $today)
+                ->whereHas('lead')
                 ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
                 ->count(),
             'today_conversions' => $todayConversionsQuery->count(),
@@ -46,9 +47,11 @@ class DashboardController extends Controller
         $monthLeadsQuery = Lead::whereMonth('lead_date', $thisMonth->month)
             ->whereYear('lead_date', $thisMonth->year);
         $monthConversionsQuery = Conversion::whereMonth('conversion_date', $thisMonth->month)
-            ->whereYear('conversion_date', $thisMonth->year);
+            ->whereYear('conversion_date', $thisMonth->year)
+            ->whereHas('lead');
         $monthCallsQuery = LeadContact::whereMonth('call_date', $thisMonth->month)
-            ->whereYear('call_date', $thisMonth->year);
+            ->whereYear('call_date', $thisMonth->year)
+            ->whereHas('lead');
 
         if ($user->isSalesPerson()) {
             $monthLeadsQuery->where('assigned_to', $user->id);
@@ -69,6 +72,7 @@ class DashboardController extends Controller
         $todayFollowUps = FollowUp::with(['lead', 'createdBy'])
             ->where('status', 'Pending')
             ->whereDate('follow_up_date', $today)
+            ->whereHas('lead')
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
             ->orderBy('follow_up_time')
             ->take(10)
@@ -78,6 +82,7 @@ class DashboardController extends Controller
         $overdueFollowUps = FollowUp::with(['lead'])
             ->where('status', 'Pending')
             ->whereDate('follow_up_date', '<', $today)
+            ->whereHas('lead')
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
             ->orderBy('follow_up_date')
             ->take(5)
@@ -86,6 +91,7 @@ class DashboardController extends Controller
         // Today's Meetings
         $todayMeetings = Meeting::with(['lead'])
             ->whereDate('meeting_date', $today)
+            ->whereHas('lead')
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
             ->orderBy('meeting_time')
             ->get();
@@ -99,6 +105,7 @@ class DashboardController extends Controller
 
         // Call Response Breakdown (Today)
         $responseBreakdown = LeadContact::whereDate('call_date', $today)
+            ->whereHas('lead')
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
             ->selectRaw('response_status, COUNT(*) as count')
             ->groupBy('response_status')
@@ -126,9 +133,9 @@ class DashboardController extends Controller
 
         // Base queries with user filter
         $leadsQuery = Lead::whereBetween('lead_date', [$startOfMonth, $endOfMonth]);
-        $conversionsQuery = Conversion::whereBetween('conversion_date', [$startOfMonth, $endOfMonth]);
-        $callsQuery = LeadContact::whereBetween('call_date', [$startOfMonth, $endOfMonth]);
-        $followUpsQuery = FollowUp::whereBetween('follow_up_date', [$startOfMonth, $endOfMonth]);
+        $conversionsQuery = Conversion::whereBetween('conversion_date', [$startOfMonth, $endOfMonth])->whereHas('lead');
+        $callsQuery = LeadContact::whereBetween('call_date', [$startOfMonth, $endOfMonth])->whereHas('lead');
+        $followUpsQuery = FollowUp::whereBetween('follow_up_date', [$startOfMonth, $endOfMonth])->whereHas('lead');
 
         if ($user->isSalesPerson()) {
             $leadsQuery->where('assigned_to', $user->id);
@@ -146,6 +153,7 @@ class DashboardController extends Controller
 
         // Get response counts
         $positiveResponses = LeadContact::whereBetween('call_date', [$startOfMonth, $endOfMonth])
+            ->whereHas('lead')
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
             ->whereIn('response_status', ['Yes', 'Interested', '50%'])
             ->count();

@@ -158,6 +158,22 @@ class UserController extends Controller
     }
 
     /**
+     * Show the form for confirming user deletion.
+     */
+    public function delete(User $user): View
+    {
+        // Prevent self-deletion
+        if ($user->id === auth()->id()) {
+            abort(403, 'You cannot delete your own account.');
+        }
+
+        // Load the leads count
+        $user->loadCount('leads');
+
+        return view('users.delete', compact('user'));
+    }
+
+    /**
      * Remove the specified user.
      */
     public function destroy(Request $request, User $user): RedirectResponse
@@ -193,7 +209,7 @@ class UserController extends Controller
                 case 'cancel':
                 default:
                     // Return error asking for action
-                    return back()->with('error', 'This user has ' . $user->leads()->count() . ' assigned leads. Please choose to delete or reassign them first.');
+                    return back()->with('error', 'This user has '.$user->leads()->count().' assigned leads. Please choose to delete or reassign them first.');
             }
         }
 
@@ -203,7 +219,7 @@ class UserController extends Controller
             return redirect()->route('users.index')
                 ->with('success', 'User deleted successfully.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to delete user: ' . $e->getMessage());
+            return back()->with('error', 'Failed to delete user: '.$e->getMessage());
         }
     }
 

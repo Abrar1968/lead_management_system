@@ -75,7 +75,7 @@ class ExtraCommissionController extends Controller
         ExtraCommission::create($validated);
 
         return redirect()
-            ->route('extra-commissions.index')
+            ->route('admin.extra-commissions.index')
             ->with('success', 'Extra commission added successfully!');
     }
 
@@ -121,7 +121,7 @@ class ExtraCommissionController extends Controller
         $extraCommission->update($validated);
 
         return redirect()
-            ->route('extra-commissions.index')
+            ->route('admin.extra-commissions.index')
             ->with('success', 'Extra commission updated successfully!');
     }
 
@@ -133,7 +133,7 @@ class ExtraCommissionController extends Controller
         $extraCommission->delete();
 
         return redirect()
-            ->route('extra-commissions.index')
+            ->route('admin.extra-commissions.index')
             ->with('success', 'Extra commission deleted successfully!');
     }
 

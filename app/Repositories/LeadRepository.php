@@ -125,13 +125,13 @@ class LeadRepository
      */
     public function countCallsByDate(string $date, ?int $userId = null): int
     {
-        $query = LeadContact::query()->where('call_date', $date);
-
-        if ($userId) {
-            $query->whereHas('lead', function ($q) use ($userId) {
-                $q->where('assigned_to', $userId);
+        $query = LeadContact::query()
+            ->where('call_date', $date)
+            ->whereHas('lead', function ($q) use ($userId) {
+                if ($userId) {
+                    $q->where('assigned_to', $userId);
+                }
             });
-        }
 
         return $query->count();
     }
@@ -141,7 +141,9 @@ class LeadRepository
      */
     public function countConversionsByDate(string $date, ?int $userId = null): int
     {
-        $query = Conversion::query()->where('conversion_date', $date);
+        $query = Conversion::query()
+            ->where('conversion_date', $date)
+            ->whereHas('lead');
 
         if ($userId) {
             $query->where('converted_by', $userId);
@@ -176,13 +178,12 @@ class LeadRepository
             ->where('follow_up_date', $date)
             ->where('status', 'Pending')
             ->with(['lead.assignedTo'])
+            ->whereHas('lead', function ($q) use ($userId) {
+                if ($userId) {
+                    $q->where('assigned_to', $userId);
+                }
+            })
             ->orderBy('follow_up_time');
-
-        if ($userId) {
-            $query->whereHas('lead', function ($q) use ($userId) {
-                $q->where('assigned_to', $userId);
-            });
-        }
 
         return $query->get();
     }
@@ -252,15 +253,20 @@ class LeadRepository
             ->whereBetween('lead_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
 
         $conversionsQuery = Conversion::query()
-            ->whereBetween('conversion_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
+            ->whereBetween('conversion_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->whereHas('lead');
 
         $callsQuery = LeadContact::query()
-            ->whereBetween('call_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
+            ->whereBetween('call_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->whereHas('lead', function ($q) use ($userId) {
+                if ($userId) {
+                    $q->where('assigned_to', $userId);
+                }
+            });
 
         if ($userId) {
             $leadsQuery->where('assigned_to', $userId);
             $conversionsQuery->where('converted_by', $userId);
-            $callsQuery->whereHas('lead', fn ($q) => $q->where('assigned_to', $userId));
         }
 
         return [

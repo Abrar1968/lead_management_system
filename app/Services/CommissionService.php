@@ -32,6 +32,7 @@ class CommissionService
 
         $standardCommission = (float) Conversion::where('converted_by', $userId)
             ->whereBetween('conversion_date', [$startDate, $endDate])
+            ->whereHas('lead')
             ->sum('commission_amount');
 
         $extraCommission = (float) ExtraCommission::where('user_id', $userId)
@@ -56,6 +57,7 @@ class CommissionService
 
         $standardCommission = (float) Conversion::where('converted_by', $userId)
             ->whereBetween('conversion_date', [$startDate, $endDate])
+            ->whereHas('lead')
             ->sum('commission_amount');
 
         $extraCommission = (float) ExtraCommission::where('user_id', $userId)
@@ -95,6 +97,7 @@ class CommissionService
         $conversions = Conversion::with('lead')
             ->where('converted_by', $userId)
             ->whereBetween('conversion_date', [$startDate, $endDate])
+            ->whereHas('lead')
             ->orderBy('conversion_date', 'desc')
             ->get();
 
@@ -142,6 +145,7 @@ class CommissionService
                 'conversions_count' => Conversion::where('converted_by', $user->id)
                     ->whereMonth('conversion_date', $month)
                     ->whereYear('conversion_date', $year)
+                    ->whereHas('lead')
                     ->count(),
             ];
         })->toArray();
