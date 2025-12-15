@@ -197,10 +197,14 @@ class UserController extends Controller
             }
         }
 
-        $user->delete();
+        try {
+            $user->delete();
 
-        return redirect()->route('users.index')
-            ->with('success', 'User deleted successfully.');
+            return redirect()->route('users.index')
+                ->with('success', 'User deleted successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to delete user: ' . $e->getMessage());
+        }
     }
 
     /**

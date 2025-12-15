@@ -11,10 +11,19 @@
             <div class="mb-6">
                 <form method="GET" class="flex items-center gap-4">
                     <input type="month" name="month" value="{{ $month }}"
-                           class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                        class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <button type="submit"
+                        class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
                         Generate Report
                     </button>
+                    <a href="{{ route('reports.print', ['month' => $month]) }}" target="_blank"
+                        class="rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 flex items-center gap-2">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2-4h6a2 2 0 012 2v2m-6-6h6m-6 0H6m6 0a2 2 0 012-2V5a2 2 0 01-2-2H9a2 2 0 01-2 2v6a2 2 0 012 2zm3 6v4a2 2 0 01-2 2H9a2 2 0 01-2-2v-4h6z" />
+                        </svg>
+                        Print
+                    </a>
                 </form>
             </div>
 
@@ -89,7 +98,8 @@
                             @forelse($statusBreakdown as $status => $count)
                                 <div class="flex items-center justify-between py-2">
                                     <span class="text-sm text-gray-600">{{ $status }}</span>
-                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                                    <span
+                                        class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
                                         @switch($status)
                                             @case('New') bg-gray-100 text-gray-800 @break
                                             @case('Contacted') bg-blue-100 text-blue-800 @break
@@ -121,13 +131,13 @@
                                 @php
                                     $maxValue = max(array_values($dailyData) ?: [1]);
                                 @endphp
-                                @foreach($dailyData as $day => $count)
+                                @foreach ($dailyData as $day => $count)
                                     <div class="group relative flex flex-1 flex-col items-center">
                                         <div class="w-full rounded-t bg-indigo-500 transition-all hover:bg-indigo-600"
-                                             style="height: {{ $maxValue > 0 ? ($count / $maxValue) * 100 : 0 }}%"
-                                             title="Day {{ $day }}: {{ $count }} leads">
+                                            style="height: {{ $maxValue > 0 ? ($count / $maxValue) * 100 : 0 }}%"
+                                            title="Day {{ $day }}: {{ $count }} leads">
                                         </div>
-                                        @if($loop->iteration % 5 == 1 || $loop->last)
+                                        @if ($loop->iteration % 5 == 1 || $loop->last)
                                             <span class="mt-1 text-[10px] text-gray-500">{{ $day }}</span>
                                         @endif
                                     </div>
@@ -137,15 +147,16 @@
                     </div>
 
                     {{-- Top Performers (Admin only) --}}
-                    @if($isAdmin && $topPerformers->isNotEmpty())
+                    @if ($isAdmin && $topPerformers->isNotEmpty())
                         <div class="overflow-hidden rounded-lg bg-white shadow">
                             <div class="border-b bg-gray-50 px-6 py-3">
                                 <h3 class="text-sm font-semibold text-gray-900">Top Performers</h3>
                             </div>
                             <div class="divide-y">
-                                @foreach($topPerformers as $index => $performer)
+                                @foreach ($topPerformers as $index => $performer)
                                     <div class="flex items-center gap-4 px-6 py-3">
-                                        <span class="flex h-8 w-8 items-center justify-center rounded-full
+                                        <span
+                                            class="flex h-8 w-8 items-center justify-center rounded-full
                                             @switch($index)
                                                 @case(0) bg-yellow-100 text-yellow-800 @break
                                                 @case(1) bg-gray-200 text-gray-700 @break
@@ -160,7 +171,8 @@
                                             <p class="text-xs text-gray-500">{{ $performer->email }}</p>
                                         </div>
                                         <div class="text-right">
-                                            <p class="text-lg font-bold text-green-600">{{ $performer->conversions_count }}</p>
+                                            <p class="text-lg font-bold text-green-600">
+                                                {{ $performer->conversions_count }}</p>
                                             <p class="text-xs text-gray-500">conversions</p>
                                         </div>
                                     </div>
@@ -178,10 +190,14 @@
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">Date</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">Lead</th>
-                                        <th class="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">Deal Value</th>
-                                        <th class="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">Commission</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">Date
+                                        </th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">Lead
+                                        </th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">
+                                            Deal Value</th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">
+                                            Commission</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
@@ -191,14 +207,17 @@
                                                 {{ $conversion->conversion_date->format('M d') }}
                                             </td>
                                             <td class="px-4 py-3 text-sm">
-                                                <a href="{{ route('leads.show', $conversion->lead) }}" class="text-indigo-600 hover:text-indigo-900">
+                                                <a href="{{ route('leads.show', $conversion->lead) }}"
+                                                    class="text-indigo-600 hover:text-indigo-900">
                                                     {{ $conversion->lead->customer_name }}
                                                 </a>
                                             </td>
-                                            <td class="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-gray-900">
+                                            <td
+                                                class="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-gray-900">
                                                 ৳{{ number_format($conversion->deal_value) }}
                                             </td>
-                                            <td class="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-green-600">
+                                            <td
+                                                class="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-green-600">
                                                 ৳{{ number_format($conversion->commission_amount) }}
                                             </td>
                                         </tr>

@@ -64,7 +64,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/leads/{lead}/convert', [ConversionController::class, 'create'])->name('conversions.create');
     Route::post('/leads/{lead}/convert', [ConversionController::class, 'store'])->name('conversions.store');
 
-    // Reports (placeholder)
+    // Reports
+    Route::get('/reports/print', [ReportController::class, 'print'])->name('reports.print');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 });
 
