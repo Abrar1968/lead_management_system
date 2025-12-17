@@ -173,18 +173,20 @@
 
                         {{-- Service Interested --}}
                         <div class="space-y-2">
-                            <label for="service_interested" class="block text-sm font-semibold text-gray-700">
+                            <label for="service_id" class="block text-sm font-semibold text-gray-700">
                                 Service Interested <span class="text-red-500">*</span>
                             </label>
-                            <select name="service_interested" id="service_interested"
+                            <select name="service_id" id="service_id"
                                 class="w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20"
                                 required>
-                                <option value="Website" {{ old('service_interested', $lead->service_interested) === 'Website' ? 'selected' : '' }}>Website</option>
-                                <option value="Software" {{ old('service_interested', $lead->service_interested) === 'Software' ? 'selected' : '' }}>Software</option>
-                                <option value="CRM" {{ old('service_interested', $lead->service_interested) === 'CRM' ? 'selected' : '' }}>CRM</option>
-                                <option value="Marketing" {{ old('service_interested', $lead->service_interested) === 'Marketing' ? 'selected' : '' }}>Marketing</option>
+                                <option value="">Select Service</option>
+                                @foreach($services as $service)
+                                    <option value="{{ $service->id }}" {{ old('service_id', $lead->service_id) == $service->id ? 'selected' : '' }}>
+                                        {{ $service->name }}
+                                    </option>
+                                @endforeach
                             </select>
-                            @error('service_interested')
+                            @error('service_id')
                                 <p class="text-sm font-medium text-red-600">{{ $message }}</p>
                             @enderror
                         </div>

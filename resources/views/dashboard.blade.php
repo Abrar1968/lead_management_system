@@ -479,7 +479,7 @@
                                         {{ $lead->status }}
                                     </span>
                                 </div>
-                                <p class="text-sm text-gray-500 mt-0.5">{{ $lead->phone_number }} • {{ $lead->service_interested }}</p>
+                                <p class="text-sm text-gray-500 mt-0.5">{{ $lead->phone_number }} • {{ $lead->service->name ?? 'N/A' }}</p>
                             </div>
                         </div>
                         <div class="text-right hidden sm:block">

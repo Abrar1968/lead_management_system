@@ -285,7 +285,7 @@
                             <div class="p-5">
                                 {{-- Header --}}
                                 <div class="flex items-start justify-between pr-10">
-                                    <div>
+                                    <div class="flex-1">
                                         <a href="{{ route('leads.show', $lead) }}"
                                            class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 transition-colors duration-200 hover:text-blue-800">
                                             <span class="flex h-5 w-5 items-center justify-center rounded bg-blue-100">
@@ -298,6 +298,83 @@
                                         <h3 class="mt-1 text-lg font-bold text-gray-900">
                                             {{ $lead->customer_name ?? 'Unknown' }}
                                         </h3>
+                                    </div>
+
+                                    {{-- Quick Actions --}}
+                                    <div class="flex gap-2 ml-2" x-data="{ showFollowUpForm: false, showMeetingForm: false }">
+                                        {{-- Follow-up Quick Add --}}
+                                        <div class="relative">
+                                            <button @click="showFollowUpForm = !showFollowUpForm" type="button"
+                                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600 transition-all duration-200 hover:bg-amber-200 hover:shadow-md">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </button>
+                                            <div x-show="showFollowUpForm" @click.outside="showFollowUpForm = false" x-cloak
+                                                class="absolute right-0 z-50 mt-2 w-80 rounded-xl bg-white p-4 shadow-xl border border-gray-200">
+                                                <h4 class="text-sm font-bold text-gray-900 mb-3">Quick Follow-up</h4>
+                                                <form action="{{ route('follow-ups.store') }}" method="POST" class="space-y-3">
+                                                    @csrf
+                                                    <input type="hidden" name="lead_id" value="{{ $lead->id }}">
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Follow-up Date</label>
+                                                        <input type="date" name="follow_up_date" required
+                                                            class="w-full rounded-lg border-gray-300 text-sm focus:border-amber-500 focus:ring-amber-500"
+                                                            value="{{ today()->format('Y-m-d') }}">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Notes</label>
+                                                        <textarea name="notes" rows="2"
+                                                            class="w-full rounded-lg border-gray-300 text-sm focus:border-amber-500 focus:ring-amber-500"
+                                                            placeholder="Add notes..."></textarea>
+                                                    </div>
+                                                    <button type="submit"
+                                                        class="w-full rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-2 text-xs font-semibold text-white transition-all hover:shadow-lg">
+                                                        Create Follow-up
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                        {{-- Meeting Quick Add --}}
+                                        <div class="relative">
+                                            <button @click="showMeetingForm = !showMeetingForm" type="button"
+                                                class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 transition-all duration-200 hover:bg-indigo-200 hover:shadow-md">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                            </button>
+                                            <div x-show="showMeetingForm" @click.outside="showMeetingForm = false" x-cloak
+                                                class="absolute right-0 z-50 mt-2 w-80 rounded-xl bg-white p-4 shadow-xl border border-gray-200">
+                                                <h4 class="text-sm font-bold text-gray-900 mb-3">Quick Meeting</h4>
+                                                <form action="{{ route('meetings.store') }}" method="POST" class="space-y-3">
+                                                    @csrf
+                                                    <input type="hidden" name="lead_id" value="{{ $lead->id }}">
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Meeting Date</label>
+                                                        <input type="date" name="meeting_date" required
+                                                            class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                            value="{{ today()->format('Y-m-d') }}">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Time</label>
+                                                        <input type="time" name="meeting_time" required
+                                                            class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                            value="{{ now()->format('H:i') }}">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Location</label>
+                                                        <input type="text" name="location"
+                                                            class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                            placeholder="Meeting location">
+                                                    </div>
+                                                    <button type="submit"
+                                                        class="w-full rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2 text-xs font-semibold text-white transition-all hover:shadow-lg">
+                                                        Schedule Meeting
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -338,19 +415,79 @@
                                         {{ $lead->source }}
                                     </span>
                                     <span class="inline-flex items-center rounded-lg bg-gradient-to-r from-violet-500 to-purple-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
-                                        {{ $lead->service_interested }}
+                                        {{ $lead->service->name ?? 'N/A' }}
                                     </span>
-                                    <span class="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold shadow-sm
-                                        @switch($lead->status)
-                                            @case('New') bg-gray-200 text-gray-800 @break
-                                            @case('Contacted') bg-blue-100 text-blue-800 @break
-                                            @case('Qualified') bg-indigo-100 text-indigo-800 @break
-                                            @case('Negotiation') bg-amber-100 text-amber-800 @break
-                                            @case('Converted') bg-emerald-100 text-emerald-800 @break
-                                            @case('Lost') bg-red-100 text-red-800 @break
-                                        @endswitch">
-                                        {{ $lead->status }}
-                                    </span>
+
+                                    {{-- Status Dropdown with Auto-Contact --}}
+                                    <div x-data="{
+                                        status: '{{ $lead->status }}',
+                                        async changeStatus(newStatus, leadId) {
+                                            this.status = newStatus;
+
+                                            // Update lead status via AJAX
+                                            const formData = new FormData();
+                                            formData.append('_method', 'PATCH');
+                                            formData.append('status', newStatus);
+
+                                            try {
+                                                const response = await fetch(`/leads/${leadId}`, {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                                        'Accept': 'application/json'
+                                                    },
+                                                    body: formData
+                                                });
+
+                                                // If status changed to 'Contacted', create contact
+                                                if (newStatus === 'Contacted') {
+                                                    const contactData = new FormData();
+                                                    contactData.append('lead_id', leadId);
+                                                    contactData.append('call_date', new Date().toISOString().split('T')[0]);
+                                                    contactData.append('call_time', new Date().toTimeString().split(' ')[0].substring(0, 5));
+                                                    contactData.append('call_status', 'Connected');
+                                                    contactData.append('notes', 'Auto-created from status change');
+
+                                                    await fetch('/lead-contacts', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                                            'Accept': 'application/json'
+                                                        },
+                                                        body: contactData
+                                                    });
+                                                }
+
+                                                if (response.ok) {
+                                                    location.reload();
+                                                }
+                                            } catch (error) {
+                                                console.error('Error updating status:', error);
+                                            }
+                                        }
+                                    }" class="relative inline-block">
+                                        <select @change="changeStatus($event.target.value, {{ $lead->id }})" x-model="status"
+                                            class="appearance-none cursor-pointer rounded-lg px-2.5 py-1 pr-6 text-xs font-semibold shadow-sm border-0 focus:ring-2 focus:ring-offset-0 transition-all
+                                                bg-gray-200 text-gray-800 focus:ring-gray-400"
+                                            :class="{
+                                                'bg-gray-200 text-gray-800': status === 'New',
+                                                'bg-blue-100 text-blue-800': status === 'Contacted',
+                                                'bg-indigo-100 text-indigo-800': status === 'Qualified',
+                                                'bg-amber-100 text-amber-800': status === 'Negotiation',
+                                                'bg-emerald-100 text-emerald-800': status === 'Converted',
+                                                'bg-red-100 text-red-800': status === 'Lost'
+                                            }">
+                                            <option value="New">New</option>
+                                            <option value="Contacted">Contacted</option>
+                                            <option value="Qualified">Qualified</option>
+                                            <option value="Negotiation">Negotiation</option>
+                                            <option value="Converted">Converted</option>
+                                            <option value="Lost">Lost</option>
+                                        </select>
+                                        <svg class="absolute right-1 top-1/2 h-3 w-3 -translate-y-1/2 pointer-events-none text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
                                 </div>
 
                                 {{-- Follow-up & Meeting Stages --}}

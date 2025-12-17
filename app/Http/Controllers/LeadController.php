@@ -39,10 +39,12 @@ class LeadController extends Controller
     {
         $date = $request->input('date', now()->format('Y-m-d'));
         $salesPersons = User::where('is_active', true)->get();
+        $services = \App\Models\Service::active()->get();
 
         return view('leads.create', [
             'date' => $date,
             'salesPersons' => $salesPersons,
+            'services' => $services,
         ]);
     }
 
@@ -83,10 +85,12 @@ class LeadController extends Controller
     public function edit(Lead $lead): View
     {
         $salesPersons = User::where('is_active', true)->get();
+        $services = \App\Models\Service::active()->get();
 
         return view('leads.edit', [
             'lead' => $lead,
             'salesPersons' => $salesPersons,
+            'services' => $services,
         ]);
     }
 

@@ -72,7 +72,7 @@ class ConversionController extends Controller
             'commission_rate_used' => $user->default_commission_rate,
             'commission_type_used' => $user->commission_type,
             'commission_amount' => $commissionAmount,
-            'package_plan' => $validated['package_plan'] ?? $lead->service_interested ?? 'Standard',
+            'package_plan' => $validated['package_plan'] ?? ($lead->service->name ?? 'Standard'),
             'notes' => $validated['notes'] ?? null,
         ]);
 
