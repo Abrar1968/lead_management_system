@@ -39,10 +39,12 @@ class LeadController extends Controller
     {
         $date = $request->input('date', now()->format('Y-m-d'));
         $salesPersons = User::where('is_active', true)->get();
+        $services = \App\Models\Service::active()->get();
 
         return view('leads.create', [
             'date' => $date,
             'salesPersons' => $salesPersons,
+            'services' => $services,
         ]);
     }
 
@@ -83,19 +85,29 @@ class LeadController extends Controller
     public function edit(Lead $lead): View
     {
         $salesPersons = User::where('is_active', true)->get();
+        $services = \App\Models\Service::active()->get();
 
         return view('leads.edit', [
             'lead' => $lead,
             'salesPersons' => $salesPersons,
+            'services' => $services,
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateLeadRequest $request, Lead $lead): RedirectResponse
+    public function update(UpdateLeadRequest $request, Lead $lead): RedirectResponse|JsonResponse
     {
         $this->leadService->updateLead($lead, $request->validated());
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'lead' => $lead->fresh(),
+                'message' => 'Lead updated successfully!'
+            ]);
+        }
 
         return redirect()
             ->route('leads.show', $lead)

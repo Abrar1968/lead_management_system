@@ -64,11 +64,12 @@ class ReportController extends Controller
 
         // Service breakdown
         $serviceBreakdownQuery = Lead::whereBetween('lead_date', [$startDate, $endDate])
-            ->selectRaw('service_interested, COUNT(*) as count');
+            ->join('services', 'leads.service_id', '=', 'services.id')
+            ->selectRaw('services.name as service_name, COUNT(leads.id) as count');
         if (! $isAdmin) {
-            $serviceBreakdownQuery->where('assigned_to', $user->id);
+            $serviceBreakdownQuery->where('leads.assigned_to', $user->id);
         }
-        $serviceBreakdown = $serviceBreakdownQuery->groupBy('service_interested')->pluck('count', 'service_interested');
+        $serviceBreakdown = $serviceBreakdownQuery->groupBy('services.name')->pluck('count', 'service_name');
 
         // Status breakdown
         $statusBreakdownQuery = Lead::whereBetween('lead_date', [$startDate, $endDate])
@@ -172,11 +173,12 @@ class ReportController extends Controller
 
         // Service breakdown
         $serviceBreakdownQuery = Lead::whereBetween('lead_date', [$startDate, $endDate])
-            ->selectRaw('service_interested, COUNT(*) as count');
+            ->join('services', 'leads.service_id', '=', 'services.id')
+            ->selectRaw('services.name as service_name, COUNT(leads.id) as count');
         if (! $isAdmin) {
-            $serviceBreakdownQuery->where('assigned_to', $user->id);
+            $serviceBreakdownQuery->where('leads.assigned_to', $user->id);
         }
-        $serviceBreakdown = $serviceBreakdownQuery->groupBy('service_interested')->pluck('count', 'service_interested');
+        $serviceBreakdown = $serviceBreakdownQuery->groupBy('services.name')->pluck('count', 'service_name');
 
         // Status breakdown
         $statusBreakdownQuery = Lead::whereBetween('lead_date', [$startDate, $endDate])

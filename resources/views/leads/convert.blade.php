@@ -70,7 +70,7 @@
                             </div>
                             <div class="flex justify-between py-3">
                                 <span class="text-sm font-medium text-gray-500">Service</span>
-                                <span class="inline-flex items-center rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg shadow-purple-500/30">{{ $lead->service_interested }}</span>
+                                <span class="inline-flex items-center rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg shadow-purple-500/30">{{ $lead->service->name ?? 'N/A' }}</span>
                             </div>
                             <div class="flex justify-between py-3">
                                 <span class="text-sm font-medium text-gray-500">Source</span>

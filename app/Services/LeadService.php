@@ -69,9 +69,23 @@ class LeadService
     public function generateLeadNumber(string $date): string
     {
         $dateStr = Carbon::parse($date)->format('Ymd');
-        $count = $this->repository->countByDate($date);
 
-        return sprintf('LEAD-%s-%03d', $dateStr, $count + 1);
+        // Get the highest sequence number for this date
+        $latestLead = Lead::whereDate('lead_date', $date)
+            ->where('lead_number', 'LIKE', "LEAD-{$dateStr}-%")
+            ->orderByRaw('CAST(SUBSTRING(lead_number, -3) AS UNSIGNED) DESC')
+            ->first();
+
+        if ($latestLead) {
+            // Extract the sequence number and increment it
+            $lastSequence = (int) substr($latestLead->lead_number, -3);
+            $nextSequence = $lastSequence + 1;
+        } else {
+            // First lead of the day
+            $nextSequence = 1;
+        }
+
+        return sprintf('LEAD-%s-%03d', $dateStr, $nextSequence);
     }
 
     /**

@@ -21,32 +21,6 @@
 
     <div class="py-6">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
-            @if (session('success'))
-                <div class="rounded-2xl bg-gradient-to-r from-emerald-50 to-green-50 p-4 border border-emerald-200 shadow-lg shadow-emerald-500/10">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 text-white">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                        <p class="text-sm font-medium text-emerald-800">{{ session('success') }}</p>
-                    </div>
-                </div>
-            @endif
-
-            @if (session('error'))
-                <div class="rounded-2xl bg-gradient-to-r from-red-50 to-rose-50 p-4 border border-red-200 shadow-lg shadow-red-500/10">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-rose-600 text-white">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </div>
-                        <p class="text-sm font-medium text-red-800">{{ session('error') }}</p>
-                    </div>
-                </div>
-            @endif
-
             {{-- Notice --}}
             <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 p-5 border border-blue-200 shadow-lg shadow-blue-500/10">
                 <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br from-blue-200/40 to-indigo-200/40"></div>
@@ -199,68 +173,195 @@
                                                 {{ $lead->source }}
                                             </span>
                                             <span class="inline-flex items-center rounded-lg bg-gradient-to-r from-violet-500 to-purple-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
-                                                {{ $lead->service_interested }}
+                                                {{ $lead->service->name ?? 'N/A' }}
                                             </span>
                                         </div>
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4">
-                                        <span class="inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm
-                                            @switch($lead->status)
-                                                @case('New') bg-gray-100 text-gray-800 @break
-                                                @case('Contacted') bg-blue-100 text-blue-800 @break
-                                                @case('Qualified') bg-indigo-100 text-indigo-800 @break
-                                                @case('Negotiation') bg-amber-100 text-amber-800 @break
-                                                @case('Converted') bg-emerald-100 text-emerald-800 @break
-                                                @case('Lost') bg-red-100 text-red-800 @break
-                                            @endswitch">
-                                            {{ $lead->status }}
-                                        </span>
+                                        {{-- Status Dropdown with Auto-Contact --}}
+                                        <div x-data="{
+                                            status: '{{ $lead->status }}',
+                                            async changeStatus(newStatus, leadId) {
+                                                this.status = newStatus;
+
+                                                // Update lead status via AJAX
+                                                const formData = new FormData();
+                                                formData.append('_method', 'PATCH');
+                                                formData.append('status', newStatus);
+
+                                                try {
+                                                    const response = await fetch(`/leads/${leadId}`, {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                                            'Accept': 'application/json'
+                                                        },
+                                                        body: formData
+                                                    });
+
+                                                    // If status changed to 'Contacted', create contact
+                                                    if (newStatus === 'Contacted') {
+                                                        const contactData = new FormData();
+                                                        contactData.append('lead_id', leadId);
+                                                        contactData.append('call_date', new Date().toISOString().split('T')[0]);
+                                                        contactData.append('call_time', new Date().toTimeString().split(' ')[0].substring(0, 5));
+                                                    contactData.append('response_status', 'Yes');
+                                                    contactData.append('notes', 'Auto-created from status change');
+
+                                                    await fetch('/contacts', {
+                                                        });
+                                                    }
+
+                                                    if (response.ok) {
+                                                        location.reload();
+                                                    }
+                                                } catch (error) {
+                                                    console.error('Error updating status:', error);
+                                                }
+                                            }
+                                        }" class="relative inline-block">
+                                            <select @change="changeStatus($event.target.value, {{ $lead->id }})" x-model="status"
+                                                class="appearance-none cursor-pointer rounded-lg px-3 py-1.5 pr-7 text-xs font-semibold shadow-sm border-0 focus:ring-2 focus:ring-offset-0 transition-all"
+                                                :class="{
+                                                    'bg-gray-100 text-gray-800': status === 'New',
+                                                    'bg-blue-100 text-blue-800': status === 'Contacted',
+                                                    'bg-indigo-100 text-indigo-800': status === 'Qualified',
+                                                    'bg-amber-100 text-amber-800': status === 'Negotiation',
+                                                    'bg-emerald-100 text-emerald-800': status === 'Converted',
+                                                    'bg-red-100 text-red-800': status === 'Lost'
+                                                }">
+                                                <option value="New">New</option>
+                                                <option value="Contacted">Contacted</option>
+                                                <option value="Qualified">Qualified</option>
+                                                <option value="Negotiation">Negotiation</option>
+                                                <option value="Converted">Converted</option>
+                                                <option value="Lost">Lost</option>
+                                            </select>
+                                            <svg class="absolute right-1 top-1/2 h-3 w-3 -translate-y-1/2 pointer-events-none text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4">
                                         @php
                                             $latestFollowUp = $lead->followUps->first();
                                             $followUpCount = $lead->followUps->count();
                                         @endphp
-                                        @if($latestFollowUp)
-                                            <div class="space-y-1">
-                                                @if($latestFollowUp->interest)
-                                                    <span class="inline-flex items-center rounded-lg px-2 py-1 text-xs font-semibold
-                                                        {{ \App\Http\Controllers\FollowUpController::INTEREST_STATUSES[$latestFollowUp->interest]['bg'] ?? 'bg-gray-100' }}
-                                                        {{ \App\Http\Controllers\FollowUpController::INTEREST_STATUSES[$latestFollowUp->interest]['text'] ?? 'text-gray-800' }}">
-                                                        {{ $latestFollowUp->interest }}
-                                                    </span>
-                                                @endif
-                                                @if($latestFollowUp->price)
-                                                    <span class="block text-xs font-bold text-emerald-600">৳{{ number_format($latestFollowUp->price, 0) }}</span>
-                                                @endif
-                                                <span class="block text-xs font-medium text-gray-400">{{ $followUpCount }} follow-up{{ $followUpCount > 1 ? 's' : '' }}</span>
+                                        <div x-data="{ showFollowUpForm: false }" class="flex items-center gap-2">
+                                            @if($latestFollowUp)
+                                                <div class="space-y-1 flex-1">
+                                                    @if($latestFollowUp->interest)
+                                                        <span class="inline-flex items-center rounded-lg px-2 py-1 text-xs font-semibold
+                                                            {{ \App\Http\Controllers\FollowUpController::INTEREST_STATUSES[$latestFollowUp->interest]['bg'] ?? 'bg-gray-100' }}
+                                                            {{ \App\Http\Controllers\FollowUpController::INTEREST_STATUSES[$latestFollowUp->interest]['text'] ?? 'text-gray-800' }}">
+                                                            {{ $latestFollowUp->interest }}
+                                                        </span>
+                                                    @endif
+                                                    @if($latestFollowUp->price)
+                                                        <span class="block text-xs font-bold text-emerald-600">৳{{ number_format($latestFollowUp->price, 0) }}</span>
+                                                    @endif
+                                                    <span class="block text-xs font-medium text-gray-400">{{ $followUpCount }} follow-up{{ $followUpCount > 1 ? 's' : '' }}</span>
+                                                </div>
+                                            @else
+                                                <span class="text-xs text-gray-300 flex-1">—</span>
+                                            @endif
+
+                                            {{-- Quick Follow-up Button --}}
+                                            <div class="relative">
+                                                <button @click="showFollowUpForm = !showFollowUpForm" type="button"
+                                                    class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-600 transition-all duration-200 hover:bg-amber-200 hover:shadow-md">
+                                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                                    </svg>
+                                                </button>
+                                                <div x-show="showFollowUpForm" @click.outside="showFollowUpForm = false" x-cloak
+                                                    class="absolute left-0 z-50 mt-2 w-80 rounded-xl bg-white p-4 shadow-xl border border-gray-200">
+                                                    <h4 class="text-sm font-bold text-gray-900 mb-3">Quick Follow-up</h4>
+                                                    <form action="{{ route('follow-ups.store') }}" method="POST" class="space-y-3">
+                                                        @csrf
+                                                        <input type="hidden" name="lead_id" value="{{ $lead->id }}">
+                                                        <input type="hidden" name="redirect_back" value="1">
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-700 mb-1">Follow-up Date</label>
+                                                            <input type="date" name="follow_up_date" required
+                                                                class="w-full rounded-lg border-gray-300 text-sm focus:border-amber-500 focus:ring-amber-500"
+                                                                value="{{ today()->format('Y-m-d') }}">
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-700 mb-1">Notes</label>
+                                                            <textarea name="notes" rows="2"
+                                                                class="w-full rounded-lg border-gray-300 text-sm focus:border-amber-500 focus:ring-amber-500"
+                                                                placeholder="Add notes..."></textarea>
+                                                        </div>
+                                                        <button type="submit"
+                                                            class="w-full rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-2 text-xs font-semibold text-white transition-all hover:shadow-lg">
+                                                            Create Follow-up
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </div>
-                                        @else
-                                            <span class="text-xs text-gray-300">—</span>
-                                        @endif
+                                        </div>
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4">
                                         @php
                                             $latestMeeting = $lead->meetings->first();
                                             $meetingCount = $lead->meetings->count();
                                         @endphp
-                                        @if($latestMeeting)
-                                            <div class="space-y-1">
-                                                @if($latestMeeting->meeting_status)
-                                                    <span class="inline-flex items-center rounded-lg px-2 py-1 text-xs font-semibold
-                                                        {{ \App\Http\Controllers\MeetingController::MEETING_STATUSES[$latestMeeting->meeting_status]['bg'] ?? 'bg-gray-100' }}
-                                                        {{ \App\Http\Controllers\MeetingController::MEETING_STATUSES[$latestMeeting->meeting_status]['text'] ?? 'text-gray-800' }}">
-                                                        {{ $latestMeeting->meeting_status }}
-                                                    </span>
-                                                @endif
-                                                @if($latestMeeting->price)
-                                                    <span class="block text-xs font-bold text-emerald-600">৳{{ number_format($latestMeeting->price, 0) }}</span>
-                                                @endif
-                                                <span class="block text-xs font-medium text-gray-400">{{ $meetingCount }} meeting{{ $meetingCount > 1 ? 's' : '' }}</span>
+                                        <div x-data="{ showMeetingForm: false }" class="flex items-center gap-2">
+                                            @if($latestMeeting)
+                                                <div class="space-y-1 flex-1">
+                                                    @if($latestMeeting->meeting_status)
+                                                        <span class="inline-flex items-center rounded-lg px-2 py-1 text-xs font-semibold
+                                                            {{ \App\Http\Controllers\MeetingController::MEETING_STATUSES[$latestMeeting->meeting_status]['bg'] ?? 'bg-gray-100' }}
+                                                            {{ \App\Http\Controllers\MeetingController::MEETING_STATUSES[$latestMeeting->meeting_status]['text'] ?? 'text-gray-800' }}">
+                                                            {{ $latestMeeting->meeting_status }}
+                                                        </span>
+                                                    @endif
+                                                    @if($latestMeeting->price)
+                                                        <span class="block text-xs font-bold text-emerald-600">৳{{ number_format($latestMeeting->price, 0) }}</span>
+                                                    @endif
+                                                    <span class="block text-xs font-medium text-gray-400">{{ $meetingCount }} meeting{{ $meetingCount > 1 ? 's' : '' }}</span>
+                                                </div>
+                                            @else
+                                                <span class="text-xs text-gray-300 flex-1">—</span>
+                                            @endif
+
+                                            {{-- Quick Meeting Button --}}
+                                            <div class="relative">
+                                                <button @click="showMeetingForm = !showMeetingForm" type="button"
+                                                    class="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 transition-all duration-200 hover:bg-indigo-200 hover:shadow-md">
+                                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                                    </svg>
+                                                </button>
+                                                <div x-show="showMeetingForm" @click.outside="showMeetingForm = false" x-cloak
+                                                    class="absolute left-0 z-50 mt-2 w-80 rounded-xl bg-white p-4 shadow-xl border border-gray-200">
+                                                    <h4 class="text-sm font-bold text-gray-900 mb-3">Quick Meeting</h4>
+                                                    <form action="{{ route('meetings.store') }}" method="POST" class="space-y-3">
+                                                        @csrf
+                                                        <input type="hidden" name="lead_id" value="{{ $lead->id }}">
+                                                        <input type="hidden" name="redirect_back" value="1">
+                                                        <input type="hidden" name="meeting_type" value="Online">
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-700 mb-1">Meeting Date</label>
+                                                            <input type="date" name="meeting_date" required
+                                                                class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                                value="{{ today()->format('Y-m-d') }}">
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-700 mb-1">Location</label>
+                                                            <input type="text" name="location"
+                                                                class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                                placeholder="Meeting location">
+                                                        </div>
+                                                        <button type="submit"
+                                                            class="w-full rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2 text-xs font-semibold text-white transition-all hover:shadow-lg">
+                                                            Schedule Meeting
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </div>
-                                        @else
-                                            <span class="text-xs text-gray-300">—</span>
-                                        @endif
+                                        </div>
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4">
                                         <div class="flex items-center gap-2">

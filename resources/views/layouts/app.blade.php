@@ -15,6 +15,9 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <style>
+            /* Alpine.js cloak */
+            [x-cloak] { display: none !important; }
+
             /* Custom animations */
             @keyframes slideInLeft {
                 from { opacity: 0; transform: translateX(-20px); }
@@ -151,7 +154,12 @@
                                 @php
                                     $pendingFollowUps = \App\Models\FollowUp::where('status', 'Pending')
                                         ->where('follow_up_date', '<=', now()->format('Y-m-d'))
-                                        ->when(!auth()->user()->isAdmin(), fn($q) => $q->whereHas('lead', fn($q) => $q->where('assigned_to', auth()->id())))
+                                        ->whereHas('lead', function($q) {
+                                            $q->whereNull('deleted_at');
+                                            if (!auth()->user()->isAdmin()) {
+                                                $q->where('assigned_to', auth()->id());
+                                            }
+                                        })
                                         ->count();
                                 @endphp
                                 @if($pendingFollowUps > 0)
@@ -171,11 +179,36 @@
                                 @php
                                     $todayMeetings = \App\Models\Meeting::where('meeting_date', now()->format('Y-m-d'))
                                         ->where('outcome', 'Pending')
-                                        ->when(!auth()->user()->isAdmin(), fn($q) => $q->whereHas('lead', fn($q) => $q->where('assigned_to', auth()->id())))
+                                        ->whereHas('lead', function($q) {
+                                            $q->whereNull('deleted_at');
+                                            if (!auth()->user()->isAdmin()) {
+                                                $q->where('assigned_to', auth()->id());
+                                            }
+                                        })
                                         ->count();
                                 @endphp
                                 @if($todayMeetings > 0)
                                     <span class="ml-auto bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm">{{ $todayMeetings }}</span>
+                                @endif
+                            </a>
+
+                            <!-- Contacts/Calls -->
+                            <a href="{{ route('contacts.index') }}"
+                               class="nav-item flex items-center px-4 py-3 text-white/90 rounded-xl hover:bg-white/10 hover:text-white group {{ request()->routeIs('contacts.*') ? 'bg-white/15 text-white shadow-lg' : '' }}">
+                                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center mr-3 shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                    </svg>
+                                </div>
+                                <span class="font-medium">Contacts</span>
+                                @php
+                                    $todayContacts = \App\Models\LeadContact::whereDate('call_date', now()->format('Y-m-d'))
+                                        ->whereHas('lead', fn($q) => $q->whereNull('deleted_at'))
+                                        ->when(!auth()->user()->isAdmin(), fn($q) => $q->whereHas('lead', fn($lq) => $lq->where('assigned_to', auth()->id())))
+                                        ->count();
+                                @endphp
+                                @if($todayContacts > 0)
+                                    <span class="ml-auto bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm">{{ $todayContacts }}</span>
                                 @endif
                             </a>
                         </div>
@@ -215,6 +248,17 @@
                                     </svg>
                                 </div>
                                 <span class="font-medium">Extra Commissions</span>
+                            </a>
+
+                            <!-- Services -->
+                            <a href="{{ route('services.index') }}"
+                               class="nav-item flex items-center px-4 py-3 text-white/90 rounded-xl hover:bg-white/10 hover:text-white group {{ request()->routeIs('services.*') ? 'bg-white/15 text-white shadow-lg' : '' }}">
+                                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mr-3 shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                    </svg>
+                                </div>
+                                <span class="font-medium">Services</span>
                             </a>
                         </div>
                         @endif

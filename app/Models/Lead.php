@@ -51,6 +51,7 @@ class Lead extends Model
         'email',
         'company_name',
         'service_interested',
+        'service_id',
         'lead_date',
         'lead_time',
         'is_repeat_lead',
@@ -87,22 +88,27 @@ class Lead extends Model
 
     public function contacts(): HasMany
     {
-        return $this->hasMany(LeadContact::class);
+        return $this->hasMany(LeadContact::class)->latest('call_date')->latest('call_time');
     }
 
     public function followUps(): HasMany
     {
-        return $this->hasMany(FollowUp::class);
+        return $this->hasMany(FollowUp::class)->latest('follow_up_date')->latest('follow_up_time');
     }
 
     public function meetings(): HasMany
     {
-        return $this->hasMany(Meeting::class);
+        return $this->hasMany(Meeting::class)->latest('meeting_date')->latest('meeting_time');
     }
 
     public function conversion(): HasOne
     {
         return $this->hasOne(Conversion::class);
+    }
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class, 'service_id');
     }
 
     // Scopes

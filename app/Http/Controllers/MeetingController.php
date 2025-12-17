@@ -15,11 +15,8 @@ class MeetingController extends Controller
      * Meeting types available
      */
     public const MEETING_TYPES = [
-        'Demo' => ['label' => 'Demo', 'color' => 'purple', 'icon' => 'presentation'],
-        'Consultation' => ['label' => 'Consultation', 'color' => 'blue', 'icon' => 'chat'],
-        'Follow-up' => ['label' => 'Follow-up', 'color' => 'yellow', 'icon' => 'arrow-path'],
-        'Closing' => ['label' => 'Closing', 'color' => 'green', 'icon' => 'check-circle'],
-        'Support' => ['label' => 'Support', 'color' => 'orange', 'icon' => 'support'],
+        'Online' => ['label' => 'Online', 'color' => 'blue', 'icon' => 'video-camera'],
+        'Physical' => ['label' => 'Physical', 'color' => 'green', 'icon' => 'map-pin'],
     ];
 
     /**
@@ -124,9 +121,9 @@ class MeetingController extends Controller
         $validated = $request->validate([
             'lead_id' => 'required|exists:leads,id',
             'follow_up_id' => 'nullable|exists:follow_ups,id',
-            'meeting_date' => 'required|date|after_or_equal:today',
-            'meeting_time' => 'required|date_format:H:i',
-            'meeting_type' => 'required|string|in:'.implode(',', array_keys(self::MEETING_TYPES)),
+            'meeting_date' => 'required|date',
+            'meeting_time' => 'nullable|date_format:H:i',
+            'meeting_type' => 'nullable|string|in:'.implode(',', array_keys(self::MEETING_TYPES)),
             'meeting_status' => 'nullable|in:'.implode(',', array_keys(self::MEETING_STATUSES)),
             'price' => 'nullable|numeric|min:0',
             'location' => 'nullable|string|max:255',
@@ -146,8 +143,8 @@ class MeetingController extends Controller
             'lead_id' => $validated['lead_id'],
             'follow_up_id' => $validated['follow_up_id'] ?? null,
             'meeting_date' => $validated['meeting_date'],
-            'meeting_time' => $validated['meeting_time'],
-            'meeting_type' => $validated['meeting_type'],
+            'meeting_time' => $validated['meeting_time'] ?? null,
+            'meeting_type' => $validated['meeting_type'] ?? 'Online',
             'meeting_status' => $validated['meeting_status'] ?? 'Pending',
             'price' => $price,
             'location' => $validated['location'] ?? null,
@@ -159,7 +156,12 @@ class MeetingController extends Controller
             return response()->json(['success' => true, 'meeting' => $meeting]);
         }
 
-        return back()->with('success', 'Meeting scheduled successfully.');
+        // If redirect_back parameter is present, return to previous page
+        if ($request->has('redirect_back')) {
+            return redirect()->back()->with('success', 'Meeting scheduled successfully.');
+        }
+
+        return redirect()->route('meetings.index')->with('success', 'Meeting scheduled successfully.');
     }
 
     /**

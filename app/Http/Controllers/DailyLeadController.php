@@ -42,10 +42,14 @@ class DailyLeadController extends Controller
         // Get date navigation data
         $dateNav = $this->leadService->getDateNavigation($date);
 
+        // Get active services for filter dropdown
+        $services = \App\Models\Service::active()->get();
+
         return view('leads.daily', [
             'leads' => $leads,
             'summary' => $summary,
             'dateNav' => $dateNav,
+            'services' => $services,
             'filters' => [
                 'source' => $source,
                 'service' => $service,
