@@ -146,7 +146,12 @@ class FollowUpController extends Controller
             return response()->json(['success' => true, 'followUp' => $followUp]);
         }
 
-        return back()->with('success', 'Follow-up scheduled successfully.');
+        // If redirect_back parameter is present, return to previous page
+        if ($request->has('redirect_back')) {
+            return redirect()->back()->with('success', 'Follow-up scheduled successfully.');
+        }
+
+        return redirect()->route('follow-ups.index')->with('success', 'Follow-up scheduled successfully.');
     }
 
     /**

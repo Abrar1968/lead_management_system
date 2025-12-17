@@ -202,7 +202,9 @@
                                 </div>
                                 <span class="font-medium">Contacts</span>
                                 @php
-                                    $todayContacts = \App\Models\LeadContact::whereDate('call_date', now()->format('Y-m-d'))                                        ->whereHas('lead', fn($q) => $q->whereNull('deleted_at'))                                        ->when(!auth()->user()->isAdmin(), fn($q) => $q->whereHas('lead', fn($q) => $q->where('assigned_to', auth()->id())))
+                                    $todayContacts = \App\Models\LeadContact::whereDate('call_date', now()->format('Y-m-d'))
+                                        ->whereHas('lead', fn($q) => $q->whereNull('deleted_at'))
+                                        ->when(!auth()->user()->isAdmin(), fn($q) => $q->whereHas('lead', fn($lq) => $lq->where('assigned_to', auth()->id())))
                                         ->count();
                                 @endphp
                                 @if($todayContacts > 0)

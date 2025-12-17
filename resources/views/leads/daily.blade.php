@@ -311,11 +311,12 @@
                                                 </svg>
                                             </button>
                                             <div x-show="showFollowUpForm" @click.outside="showFollowUpForm = false" x-cloak
-                                                class="absolute right-0 z-50 mt-2 w-80 rounded-xl bg-white p-4 shadow-xl border border-gray-200">
+                                                class="absolute right-0 top-full z-50 mt-2 w-80 rounded-xl bg-white p-4 shadow-xl border border-gray-200">
                                                 <h4 class="text-sm font-bold text-gray-900 mb-3">Quick Follow-up</h4>
                                                 <form action="{{ route('follow-ups.store') }}" method="POST" class="space-y-3">
                                                     @csrf
                                                     <input type="hidden" name="lead_id" value="{{ $lead->id }}">
+                                                    <input type="hidden" name="redirect_back" value="1">
                                                     <div>
                                                         <label class="block text-xs font-medium text-gray-700 mb-1">Follow-up Date</label>
                                                         <input type="date" name="follow_up_date" required
@@ -345,22 +346,18 @@
                                                 </svg>
                                             </button>
                                             <div x-show="showMeetingForm" @click.outside="showMeetingForm = false" x-cloak
-                                                class="absolute right-0 z-50 mt-2 w-80 rounded-xl bg-white p-4 shadow-xl border border-gray-200">
+                                                class="absolute right-0 top-full z-50 mt-2 w-80 rounded-xl bg-white p-4 shadow-xl border border-gray-200">
                                                 <h4 class="text-sm font-bold text-gray-900 mb-3">Quick Meeting</h4>
                                                 <form action="{{ route('meetings.store') }}" method="POST" class="space-y-3">
                                                     @csrf
                                                     <input type="hidden" name="lead_id" value="{{ $lead->id }}">
+                                                    <input type="hidden" name="redirect_back" value="1">
+                                                    <input type="hidden" name="meeting_type" value="Online">
                                                     <div>
                                                         <label class="block text-xs font-medium text-gray-700 mb-1">Meeting Date</label>
                                                         <input type="date" name="meeting_date" required
                                                             class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                             value="{{ today()->format('Y-m-d') }}">
-                                                    </div>
-                                                    <div>
-                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Time</label>
-                                                        <input type="time" name="meeting_time" required
-                                                            class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                                            value="{{ now()->format('H:i') }}">
                                                     </div>
                                                     <div>
                                                         <label class="block text-xs font-medium text-gray-700 mb-1">Location</label>
@@ -445,16 +442,10 @@
                                                     contactData.append('lead_id', leadId);
                                                     contactData.append('call_date', new Date().toISOString().split('T')[0]);
                                                     contactData.append('call_time', new Date().toTimeString().split(' ')[0].substring(0, 5));
-                                                    contactData.append('call_status', 'Connected');
-                                                    contactData.append('notes', 'Auto-created from status change');
+                                                contactData.append('response_status', 'Yes');
+                                                contactData.append('notes', 'Auto-created from status change');
 
-                                                    await fetch('/lead-contacts', {
-                                                        method: 'POST',
-                                                        headers: {
-                                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
-                                                            'Accept': 'application/json'
-                                                        },
-                                                        body: contactData
+                                                await fetch('/contacts', {
                                                     });
                                                 }
 

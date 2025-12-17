@@ -97,9 +97,17 @@ class LeadController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateLeadRequest $request, Lead $lead): RedirectResponse
+    public function update(UpdateLeadRequest $request, Lead $lead): RedirectResponse|JsonResponse
     {
         $this->leadService->updateLead($lead, $request->validated());
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'lead' => $lead->fresh(),
+                'message' => 'Lead updated successfully!'
+            ]);
+        }
 
         return redirect()
             ->route('leads.show', $lead)

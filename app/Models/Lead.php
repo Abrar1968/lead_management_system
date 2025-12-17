@@ -88,17 +88,17 @@ class Lead extends Model
 
     public function contacts(): HasMany
     {
-        return $this->hasMany(LeadContact::class);
+        return $this->hasMany(LeadContact::class)->latest('call_date')->latest('call_time');
     }
 
     public function followUps(): HasMany
     {
-        return $this->hasMany(FollowUp::class);
+        return $this->hasMany(FollowUp::class)->latest('follow_up_date')->latest('follow_up_time');
     }
 
     public function meetings(): HasMany
     {
-        return $this->hasMany(Meeting::class);
+        return $this->hasMany(Meeting::class)->latest('meeting_date')->latest('meeting_time');
     }
 
     public function conversion(): HasOne
