@@ -51,6 +51,7 @@ class Lead extends Model
         'email',
         'company_name',
         'service_interested',
+        'service_id',
         'lead_date',
         'lead_time',
         'is_repeat_lead',
@@ -103,6 +104,11 @@ class Lead extends Model
     public function conversion(): HasOne
     {
         return $this->hasOne(Conversion::class);
+    }
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class, 'service_id');
     }
 
     // Scopes

@@ -12,7 +12,7 @@ use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MonthlyLeadController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -83,6 +83,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::post('/leads/bulk-delete', [LeadController::class, 'bulkDelete'])->name('leads.bulk-delete');
     Route::post('/leads/bulk-reassign', [LeadController::class, 'bulkReassign'])->name('leads.bulk-reassign');
     Route::post('/leads/bulk-status', [LeadController::class, 'bulkUpdateStatus'])->name('leads.bulk-status');
+
+    // Services Management
+    Route::resource('services', ServiceController::class);
 
     // Extra Commissions Management
     Route::resource('extra-commissions', ExtraCommissionController::class)->names([
