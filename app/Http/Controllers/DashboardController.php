@@ -41,6 +41,9 @@ class DashboardController extends Controller
                 ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
                 ->count(),
             'today_conversions' => $todayConversionsQuery->count(),
+            'unassigned_leads' => Lead::whereNull('assigned_to')
+                ->whereNotIn('status', ['Converted', 'Lost'])
+                ->count(),
         ];
 
         // This Month's Stats

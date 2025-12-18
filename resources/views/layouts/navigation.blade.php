@@ -41,6 +41,9 @@
                     <x-nav-link :href="route('clients.index')" :active="request()->routeIs('clients.*')">
                         {{ __('Clients') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('smart-suggestions.index')" :active="request()->routeIs('smart-suggestions.*') || request()->routeIs('smart-assign.*') || request()->routeIs('follow-up-rules.*')">
+                        {{ __('Smart AI') }}
+                    </x-nav-link>
                     @if(auth()->user()->isAdmin())
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                         {{ __('Users') }}
@@ -140,6 +143,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('clients.index')" :active="request()->routeIs('clients.*')">
                 {{ __('Clients') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('smart-suggestions.index')" :active="request()->routeIs('smart-suggestions.*') || request()->routeIs('smart-assign.*') || request()->routeIs('follow-up-rules.*')">
+                {{ __('Smart AI') }}
             </x-responsive-nav-link>
             @if(auth()->user()->isAdmin())
             <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">

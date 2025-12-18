@@ -42,13 +42,16 @@ describe('Lead Create', function () {
     });
 
     test('user can create a lead', function () {
+        $service = \App\Models\Service::factory()->create(['name' => 'Website Development']);
+
         $leadData = [
             'source' => 'WhatsApp',
-            'customer_name' => 'Test Client',
+            'client_name' => 'Test Client',
             'phone_number' => '01712345678',
             'email' => 'test@example.com',
             'company_name' => 'Test Company',
-            'service_interested' => 'Website',
+            'service_id' => $service->id,
+            'service_interested' => $service->name,
             'lead_date' => now()->format('Y-m-d'),
             'priority' => 'High',
         ];
@@ -68,7 +71,7 @@ describe('Lead Create', function () {
         $response = $this->actingAs($this->salesPerson)
             ->post(route('leads.store'), []);
 
-        $response->assertSessionHasErrors(['source', 'phone_number', 'service_interested', 'lead_date']);
+        $response->assertSessionHasErrors(['source', 'phone_number', 'service_id', 'lead_date']);
     });
 });
 

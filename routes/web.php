@@ -9,6 +9,7 @@ use App\Http\Controllers\DemoController;
 use App\Http\Controllers\ExtraCommissionController;
 use App\Http\Controllers\FieldDefinitionController;
 use App\Http\Controllers\FollowUpController;
+use App\Http\Controllers\FollowUpRuleController;
 use App\Http\Controllers\LeadContactController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\MeetingController;
@@ -18,6 +19,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SmartAssignController;
+use App\Http\Controllers\SmartSuggestionsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -83,6 +86,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Demos
     Route::resource('demos', DemoController::class);
     Route::post('/demos/{demo}/remove-image', [DemoController::class, 'removeImage'])->name('demos.remove-image');
+
+    // Follow-up Rules (Smart Suggestions - Auto Follow-up)
+    Route::resource('follow-up-rules', FollowUpRuleController::class);
+    Route::post('/follow-up-rules/{follow_up_rule}/toggle', [FollowUpRuleController::class, 'toggle'])->name('follow-up-rules.toggle');
+    Route::get('/follow-up-rules/{follow_up_rule}/preview', [FollowUpRuleController::class, 'preview'])->name('follow-up-rules.preview');
+
+    // Smart Assignment
+    Route::get('/smart-assign', [SmartAssignController::class, 'index'])->name('smart-assign.index');
+    Route::get('/smart-assign/recommend/{lead}', [SmartAssignController::class, 'recommend'])->name('smart-assign.recommend');
+    Route::post('/smart-assign/assign/{lead}', [SmartAssignController::class, 'assign'])->name('smart-assign.assign');
+    Route::post('/smart-assign/bulk-assign', [SmartAssignController::class, 'bulkAssign'])->name('smart-assign.bulk-assign');
+    Route::post('/smart-assign/settings', [SmartAssignController::class, 'updateSettings'])->name('smart-assign.settings');
+    Route::post('/smart-assign/recalculate', [SmartAssignController::class, 'recalculate'])->name('smart-assign.recalculate');
+
+    // Smart Suggestions Dashboard (Unified View)
+    Route::get('/smart-suggestions', [SmartSuggestionsController::class, 'index'])->name('smart-suggestions.index');
 
     // Reports
     Route::get('/reports/print', [ReportController::class, 'print'])->name('reports.print');

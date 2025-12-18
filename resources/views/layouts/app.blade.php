@@ -211,6 +211,28 @@
                                     <span class="ml-auto bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow-sm">{{ $todayContacts }}</span>
                                 @endif
                             </a>
+
+                            <!-- Demos -->
+                            <a href="{{ route('demos.index') }}"
+                               class="nav-item flex items-center px-4 py-3 text-white/90 rounded-xl hover:bg-white/10 hover:text-white group {{ request()->routeIs('demos.*') ? 'bg-white/15 text-white shadow-lg' : '' }}">
+                                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mr-3 shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <span class="font-medium">Demos</span>
+                            </a>
+
+                            <!-- Clients -->
+                            <a href="{{ route('clients.index') }}"
+                               class="nav-item flex items-center px-4 py-3 text-white/90 rounded-xl hover:bg-white/10 hover:text-white group {{ request()->routeIs('clients.*') ? 'bg-white/15 text-white shadow-lg' : '' }}">
+                                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center mr-3 shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                </div>
+                                <span class="font-medium">Clients</span>
+                            </a>
                         </div>
 
                         @if(auth()->user()->isAdmin())
@@ -259,6 +281,28 @@
                                     </svg>
                                 </div>
                                 <span class="font-medium">Services</span>
+                            </a>
+
+                            <!-- Smart AI -->
+                            <a href="{{ route('smart-suggestions.index') }}"
+                               class="nav-item flex items-center px-4 py-3 text-white/90 rounded-xl hover:bg-white/10 hover:text-white group {{ request()->routeIs('smart-suggestions.*') || request()->routeIs('smart-assign.*') || request()->routeIs('follow-up-rules.*') ? 'bg-white/15 text-white shadow-lg' : '' }}">
+                                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center mr-3 shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                    </svg>
+                                </div>
+                                <span class="font-medium">Smart AI</span>
+                            </a>
+
+                            <!-- Dynamic Fields -->
+                            <a href="{{ route('field-definitions.index') }}"
+                               class="nav-item flex items-center px-4 py-3 text-white/90 rounded-xl hover:bg-white/10 hover:text-white group {{ request()->routeIs('field-definitions.*') ? 'bg-white/15 text-white shadow-lg' : '' }}">
+                                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center mr-3 shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+                                    </svg>
+                                </div>
+                                <span class="font-medium">Fields</span>
                             </a>
                         </div>
                         @endif
