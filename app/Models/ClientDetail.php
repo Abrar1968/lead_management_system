@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ClientDetail extends Model
 {
@@ -28,5 +29,34 @@ class ClientDetail extends Model
     public function conversion(): BelongsTo
     {
         return $this->belongsTo(Conversion::class);
+    }
+
+    /**
+     * Get dynamic field values for this client
+     */
+    public function fieldValues(): MorphMany
+    {
+        return $this->morphMany(FieldValue::class, 'fieldable');
+    }
+
+    /**
+     * Get a specific dynamic field value
+     */
+    public function getFieldValue(string $fieldName): ?string
+    {
+        return $this->fieldValues()
+            ->whereHas('fieldDefinition', fn ($q) => $q->where('name', $fieldName))
+            ->first()?->value;
+    }
+
+    /**
+     * Set a dynamic field value
+     */
+    public function setFieldValue(int $fieldDefinitionId, ?string $value): void
+    {
+        $this->fieldValues()->updateOrCreate(
+            ['field_definition_id' => $fieldDefinitionId],
+            ['value' => $value]
+        );
     }
 }

@@ -1,18 +1,23 @@
 <?php
 
+use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\ConversionController;
 use App\Http\Controllers\DailyLeadController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DemoController;
 use App\Http\Controllers\ExtraCommissionController;
+use App\Http\Controllers\FieldDefinitionController;
 use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\LeadContactController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MonthlyLeadController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -26,6 +31,10 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Notifications
+    Route::get('/notifications/check', [NotificationController::class, 'checkUpcomingMeetings'])->name('notifications.check');
+    Route::post('/notifications/dismiss', [NotificationController::class, 'dismissLoginAlert'])->name('notifications.dismiss');
 
     // Daily Leads (Primary View)
     Route::get('/leads/daily', [DailyLeadController::class, 'index'])->name('leads.daily');
@@ -64,6 +73,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/leads/{lead}/convert', [ConversionController::class, 'create'])->name('conversions.create');
     Route::post('/leads/{lead}/convert', [ConversionController::class, 'store'])->name('conversions.store');
 
+    // Clients (Converted Leads)
+    Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');
+    Route::get('/clients/{client}', [ClientController::class, 'show'])->name('clients.show');
+    Route::get('/clients/{client}/edit', [ClientController::class, 'edit'])->name('clients.edit');
+    Route::put('/clients/{client}', [ClientController::class, 'update'])->name('clients.update');
+    Route::post('/clients/{client}/remove-image', [ClientController::class, 'removeImage'])->name('clients.remove-image');
+
+    // Demos
+    Route::resource('demos', DemoController::class);
+    Route::post('/demos/{demo}/remove-image', [DemoController::class, 'removeImage'])->name('demos.remove-image');
+
     // Reports
     Route::get('/reports/print', [ReportController::class, 'print'])->name('reports.print');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
@@ -86,6 +106,10 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
 
     // Services Management
     Route::resource('services', ServiceController::class);
+
+    // Field Definitions Management (Dynamic Fields)
+    Route::resource('field-definitions', FieldDefinitionController::class)->except(['show']);
+    Route::post('/field-definitions/reorder', [FieldDefinitionController::class, 'reorder'])->name('field-definitions.reorder');
 
     // Extra Commissions Management
     Route::resource('extra-commissions', ExtraCommissionController::class)->names([

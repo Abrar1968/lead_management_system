@@ -449,6 +449,155 @@
             </div>
         </div>
 
+        <!-- Meeting Notification System -->
+        <div x-data="meetingNotifications()" x-init="init()" x-cloak>
+            <!-- Notification Modal -->
+            <div x-show="showModal" x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 z-[100] flex items-start justify-center pt-20 px-4">
+                <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="dismissModal()"></div>
+                <div x-show="showModal" x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                     class="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 z-10">
+                    <!-- Header -->
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30 animate-pulse">
+                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900" x-text="isLoginAlert ? '📅 Today\'s Meetings' : '⏰ Upcoming Meeting!'"></h3>
+                            <p class="text-sm text-gray-500" x-text="isLoginAlert ? 'You have meetings scheduled for today' : 'A meeting is starting soon'"></p>
+                        </div>
+                        <button @click="dismissModal()" class="ml-auto p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Meeting List -->
+                    <div class="space-y-3 max-h-80 overflow-y-auto">
+                        <template x-for="meeting in meetings" :key="meeting.id">
+                            <div class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <p class="font-semibold text-gray-900" x-text="meeting.client_name || 'Unknown Client'"></p>
+                                        <p class="text-sm text-gray-600" x-text="meeting.phone"></p>
+                                        <div class="flex items-center gap-3 mt-2">
+                                            <span class="inline-flex items-center gap-1 text-sm font-medium text-blue-700">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                                <span x-text="meeting.time"></span>
+                                            </span>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800" x-text="meeting.type"></span>
+                                        </div>
+                                        <p x-show="meeting.location" class="text-xs text-gray-500 mt-1" x-text="'📍 ' + meeting.location"></p>
+                                    </div>
+                                    <div x-show="meeting.is_upcoming" class="text-right">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold"
+                                              :class="meeting.diff_minutes <= 15 ? 'bg-red-100 text-red-700' : (meeting.diff_minutes <= 30 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700')">
+                                            <span x-text="meeting.diff_minutes + ' min'"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="mt-6 flex items-center justify-between">
+                        <a href="{{ route('meetings.index') }}" class="text-sm font-medium text-blue-600 hover:text-blue-700">
+                            View All Meetings →
+                        </a>
+                        <button @click="dismissModal()" class="px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all">
+                            Got it!
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function meetingNotifications() {
+                return {
+                    showModal: false,
+                    meetings: [],
+                    isLoginAlert: false,
+                    notifiedMeetings: [],
+                    pollingInterval: null,
+
+                    init() {
+                        // Load notified meetings from localStorage
+                        const stored = localStorage.getItem('notifiedMeetings_' + new Date().toDateString());
+                        this.notifiedMeetings = stored ? JSON.parse(stored) : [];
+
+                        // Check on page load (login check)
+                        this.checkMeetings(true);
+
+                        // Start polling every 5 minutes
+                        this.pollingInterval = setInterval(() => this.checkMeetings(false), 300000);
+                    },
+
+                    async checkMeetings(isLoginCheck) {
+                        try {
+                            const response = await fetch(`/notifications/check?login_check=${isLoginCheck}`, {
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                }
+                            });
+                            const data = await response.json();
+
+                            if (data.alert && data.meetings.length > 0) {
+                                // Filter out already notified meetings (except for login alert)
+                                let newMeetings = data.meetings;
+                                if (!data.login_alert) {
+                                    newMeetings = data.meetings.filter(m => !this.notifiedMeetings.includes(m.id));
+                                }
+
+                                if (newMeetings.length > 0 || data.login_alert) {
+                                    this.meetings = data.login_alert ? data.meetings : newMeetings;
+                                    this.isLoginAlert = data.login_alert;
+                                    this.showModal = true;
+                                    this.playSound();
+
+                                    // Mark as notified
+                                    newMeetings.forEach(m => {
+                                        if (!this.notifiedMeetings.includes(m.id)) {
+                                            this.notifiedMeetings.push(m.id);
+                                        }
+                                    });
+                                    localStorage.setItem('notifiedMeetings_' + new Date().toDateString(), JSON.stringify(this.notifiedMeetings));
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error checking meetings:', error);
+                        }
+                    },
+
+                    playSound() {
+                        try {
+                            const audio = new Audio('/sounds/notification.mp3');
+                            audio.volume = 0.5;
+                            audio.play().catch(e => console.log('Audio play prevented:', e));
+                        } catch (e) {
+                            console.log('Audio not available');
+                        }
+                    },
+
+                    dismissModal() {
+                        this.showModal = false;
+                    }
+                }
+            }
+        </script>
+
         @stack('scripts')
     </body>
 </html>
