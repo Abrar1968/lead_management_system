@@ -76,6 +76,7 @@ class LeadController extends Controller
 
         return view('leads.show', [
             'lead' => $lead,
+            'statuses' => \App\Http\Controllers\LeadContactController::RESPONSE_STATUSES,
         ]);
     }
 

@@ -15,15 +15,13 @@ class LeadContactController extends Controller
      * Response status options matching the spreadsheet dropdown
      */
     public const RESPONSE_STATUSES = [
-        'Yes' => ['label' => 'Yes', 'color' => 'green', 'bg' => 'bg-green-500'],
-        'No' => ['label' => 'No', 'color' => 'red', 'bg' => 'bg-red-500'],
-        'No Res.' => ['label' => 'No Response', 'color' => 'gray', 'bg' => 'bg-gray-500'],
-        '50%' => ['label' => '50% Interest', 'color' => 'yellow', 'bg' => 'bg-yellow-500'],
-        'Call Later' => ['label' => 'Call Later', 'color' => 'blue', 'bg' => 'bg-blue-500'],
-        'Phone off' => ['label' => 'Phone Off', 'color' => 'gray', 'bg' => 'bg-gray-400'],
-        '80%' => ['label' => '80% Interest', 'color' => 'orange', 'bg' => 'bg-orange-500'],
-        'Demo Delivered' => ['label' => 'Demo Delivered', 'color' => 'purple', 'bg' => 'bg-purple-500'],
         'Interested' => ['label' => 'Interested', 'color' => 'green', 'bg' => 'bg-green-600'],
+        '50%' => ['label' => '50% Interest', 'color' => 'yellow', 'bg' => 'bg-yellow-500'],
+        'Yes' => ['label' => 'Yes', 'color' => 'green', 'bg' => 'bg-green-500'],
+        'Call Later' => ['label' => 'Call Later', 'color' => 'blue', 'bg' => 'bg-blue-500'],
+        'No Response' => ['label' => 'No Response', 'color' => 'gray', 'bg' => 'bg-gray-500'],
+        'No' => ['label' => 'No', 'color' => 'red', 'bg' => 'bg-red-500'],
+        'Phone off' => ['label' => 'Phone Off', 'color' => 'gray', 'bg' => 'bg-gray-400'],
     ];
 
     /**
@@ -139,7 +137,11 @@ class LeadContactController extends Controller
         }
 
         if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'contact' => $contact->fresh()]);
+            return response()->json([
+                'success' => true, 
+                'message' => 'Call record updated.',
+                'contact' => $contact->fresh()
+            ]);
         }
 
         return back()->with('success', 'Call record updated.');
@@ -196,14 +198,12 @@ class LeadContactController extends Controller
         // Map call responses to valid Lead statuses:
         // Valid statuses: New, Contacted, Qualified, Negotiation, Converted, Lost
         $statusMapping = [
-            'Yes' => 'Qualified',
             'Interested' => 'Qualified',
-            'Demo Delivered' => 'Negotiation',
-            '80%' => 'Negotiation',
             '50%' => 'Contacted',
+            'Yes' => 'Qualified',
             'Call Later' => 'Contacted',
+            'No Response' => 'Contacted',
             'No' => 'Lost',
-            'No Res.' => 'Contacted',
             'Phone off' => 'Contacted',
         ];
 
