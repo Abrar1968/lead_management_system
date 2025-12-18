@@ -153,6 +153,22 @@
     </div>
 
     <!-- Calls Table -->
+    @php
+        $contactsJson = $contacts
+            ->getCollection()
+            ->map(function ($contact) {
+                return [
+                    'id' => $contact->id,
+                    'response_status' => $contact->response_status,
+                    'notes' => $contact->notes,
+                    'client_name' => $contact->lead->client_name ?? 'N/A',
+                ];
+            })
+            ->keyBy('id');
+    @endphp
+    <script>
+        window.contactsData = {!! json_encode($contactsJson) !!};
+    </script>
     <div class="overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200/50 border border-gray-100">
         <div class="bg-gradient-to-r from-gray-700 to-gray-800 px-6 py-4">
             <div class="flex items-center gap-3">
@@ -264,12 +280,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap flex items-center gap-2">
                                     <button type="button"
-                                        @click="$dispatch('open-modal', 'edit-contact'); $dispatch('set-edit-contact', {{ json_encode([
-                                            'id' => $contact->id,
-                                            'response_status' => $contact->response_status,
-                                            'notes' => $contact->notes,
-                                            'client_name' => $contact->lead?->client_name,
-                                        ]) }})"
+                                        x-on:click="$dispatch('open-modal', 'edit-contact'); $dispatch('set-edit-contact', window.contactsData[{{ $contact->id }}])"
                                         class="text-xs px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-200 transition-colors">
                                         Edit
                                     </button>

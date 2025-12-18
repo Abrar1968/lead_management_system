@@ -170,7 +170,36 @@ class LeadService
      */
     public function updateLead(Lead $lead, array $data): Lead
     {
-        return $this->repository->update($lead, $data);
+        $oldStatus = $lead->status;
+        $lead = $this->repository->update($lead, $data);
+
+        // Check if status changed to 'Converted' and no conversion exists
+        if ($oldStatus !== 'Converted' && $lead->status === 'Converted' && ! $lead->conversion) {
+            // Auto-create conversion and client
+            $user = auth()->user();
+            $commissionService = app(\App\Services\CommissionService::class);
+            $dealValue = 0; // Default to 0 for manual status change
+            
+            $commissionAmount = $commissionService->calculateCommission($user, $dealValue);
+
+            $conversion = \App\Models\Conversion::create([
+                'lead_id' => $lead->id,
+                'converted_by' => $user->id,
+                'conversion_date' => now(),
+                'deal_value' => $dealValue,
+                'commission_rate_used' => $user->default_commission_rate,
+                'commission_type_used' => $user->commission_type,
+                'commission_amount' => $commissionAmount,
+                'package_plan' => $lead->service->name ?? 'Standard',
+                'notes' => 'Auto-converted via status change',
+            ]);
+
+            \App\Models\ClientDetail::create([
+                'conversion_id' => $conversion->id,
+            ]);
+        }
+
+        return $lead;
     }
 
     /**

@@ -83,6 +83,8 @@ class ClientController extends Controller
             $fieldKey = 'dynamic_'.$field->name;
             if ($field->type === 'image') {
                 $rules[$fieldKey] = ($field->required ? 'required|' : 'nullable|').'image|max:2048';
+            } elseif ($field->type === 'document') {
+                $rules[$fieldKey] = ($field->required ? 'required|' : 'nullable|').'file|mimes:pdf,doc,docx,xls,xlsx,txt|max:5120'; // 5MB max
             } elseif ($field->type === 'link') {
                 $rules[$fieldKey] = ($field->required ? 'required|' : 'nullable|').'url|max:500';
             } else {
@@ -112,7 +114,14 @@ class ClientController extends Controller
                 $file = $request->file($fieldKey);
                 $path = $this->processImageUpload($file, $client->id, $field->name);
                 $value = $path;
-            } elseif ($field->type !== 'image') {
+            } elseif ($field->type === 'document' && $request->hasFile($fieldKey)) {
+                // Handle document upload
+                $file = $request->file($fieldKey);
+                $extension = $file->getClientOriginalExtension();
+                $filename = "client_{$client->id}_{$field->name}_".time().'.'.$extension;
+                $path = $file->storeAs('clients/documents', $filename, 'public');
+                $value = $path;
+            } elseif ($field->type !== 'image' && $field->type !== 'document') {
                 $value = $validated[$fieldKey] ?? null;
             } else {
                 // Keep existing image if no new upload

@@ -7,14 +7,16 @@ use App\Models\FollowUp;
 use App\Models\Lead;
 use App\Models\LeadContact;
 use App\Models\Meeting;
+use App\Models\User;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $today = Carbon::today();
-        $thisMonth = Carbon::now();
+        $date = $request->input('date', Carbon::today()->format('Y-m-d'));
+        $today = Carbon::parse($date);
+        $thisMonth = $today->copy();
         $user = auth()->user();
 
         // Today's Stats
@@ -106,6 +108,23 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
+        // Top Performing Users (This Month)
+        $topPerformers = [];
+        if ($user->isAdmin()) {
+            $topPerformers = User::where('role', 'sales')
+                ->withCount(['conversions' => function($q) use ($thisMonth) {
+                    $q->whereMonth('conversion_date', $thisMonth->month)
+                      ->whereYear('conversion_date', $thisMonth->year);
+                }])
+                ->withSum(['conversions' => function($q) use ($thisMonth) {
+                    $q->whereMonth('conversion_date', $thisMonth->month)
+                      ->whereYear('conversion_date', $thisMonth->year);
+                }], 'deal_value')
+                ->orderBy('conversions_count', 'desc')
+                ->take(5)
+                ->get();
+        }
+
         // Call Response Breakdown (Today)
         $responseBreakdown = LeadContact::whereDate('call_date', $today)
             ->whereHas('lead')
@@ -122,7 +141,9 @@ class DashboardController extends Controller
             'overdueFollowUps',
             'todayMeetings',
             'recentLeads',
-            'responseBreakdown'
+            'responseBreakdown',
+            'topPerformers',
+            'date'
         ));
     }
 
