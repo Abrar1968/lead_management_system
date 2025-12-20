@@ -19,7 +19,7 @@ class ClientController extends Controller
             ->with(['conversion.lead.assignedTo', 'conversion.convertedBy', 'fieldValues.fieldDefinition']);
 
         // Filter by sales person if not admin
-        $user = auth()->user();
+        $user = \Illuminate\Support\Facades\Auth::user();
         if ($user->isSalesPerson()) {
             $query->whereHas('conversion.lead', fn ($q) => $q->where('assigned_to', $user->id));
         }
@@ -129,6 +129,32 @@ class ClientController extends Controller
             }
 
             $client->setFieldValue($field->id, $value);
+
+            // Check if this field represents Deal Value/Price and update conversion/commission
+            $normalizedFieldName = strtolower(str_replace([' ', '_', '-'], '', $field->name));
+            if (in_array($normalizedFieldName, ['price', 'dealvalue', 'amount', 'cost', 'packageprice', 'value'])) {
+                // If value is numeric, update conversion
+                $numericValue = (float) filter_var($value, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+                
+                if ($numericValue > 0) {
+                    $conversion = $client->conversion;
+                    $convertedBy = $conversion->convertedBy;
+                    
+                    if ($convertedBy) {
+                        $commissionService = app(\App\Services\CommissionService::class);
+                        $newCommission = $commissionService->calculateCommission($convertedBy, $numericValue);
+                        
+                        $conversion->update([
+                            'deal_value' => $numericValue,
+                            'commission_amount' => $newCommission,
+                        ]);
+                    } else {
+                         $conversion->update([
+                            'deal_value' => $numericValue,
+                        ]);
+                    }
+                }
+            }
         }
 
         return redirect()

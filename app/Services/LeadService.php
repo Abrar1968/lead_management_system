@@ -176,7 +176,7 @@ class LeadService
         // Check if status changed to 'Converted' and no conversion exists
         if ($oldStatus !== 'Converted' && $lead->status === 'Converted' && ! $lead->conversion) {
             // Auto-create conversion and client
-            $user = auth()->user();
+            $user = \Illuminate\Support\Facades\Auth::user();
             $commissionService = app(\App\Services\CommissionService::class);
             $dealValue = 0; // Default to 0 for manual status change
             
@@ -196,6 +196,17 @@ class LeadService
 
             \App\Models\ClientDetail::create([
                 'conversion_id' => $conversion->id,
+            ]);
+
+            // Auto-create Contact log
+            \App\Models\LeadContact::create([
+                'lead_id' => $lead->id,
+                'caller_id' => $user->id,
+                'call_date' => now(),
+                'call_time' => now(),
+                'daily_call_made' => true,
+                'response_status' => 'Connected',
+                'notes' => 'Lead converted to Client',
             ]);
         }
 

@@ -18,28 +18,6 @@
     </x-slot>
 
     <!-- Flash Messages -->
-    @if (session('success'))
-        <div class="mb-6 rounded-2xl bg-gradient-to-r from-emerald-50 to-green-50 p-4 border border-emerald-200 shadow-lg shadow-emerald-500/10"
-            x-data="{ show: true }" x-show="show" x-transition:leave="transition ease-in duration-300"
-            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-            <div class="flex items-center gap-3">
-                <div
-                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/30">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-                <p class="flex-1 text-sm font-semibold text-emerald-800">{{ session('success') }}</p>
-                <button @click="show = false" class="text-emerald-500 hover:text-emerald-700 transition-colors">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-    @endif
-
     <!-- Stats Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div

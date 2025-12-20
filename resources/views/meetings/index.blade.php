@@ -18,20 +18,6 @@
     </x-slot>
 
     <!-- Flash Messages -->
-    @if (session('success'))
-        <div
-            class="mb-6 overflow-hidden rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 p-4">
-            <div class="flex items-center gap-3">
-                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-white">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-                <p class="text-sm font-medium text-emerald-800">{{ session('success') }}</p>
-            </div>
-        </div>
-    @endif
-
     <!-- Stats Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div

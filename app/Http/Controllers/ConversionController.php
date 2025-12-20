@@ -82,6 +82,16 @@ class ConversionController extends Controller
             'conversion_id' => $conversion->id,
         ]);
 
+        // Create a contact record for the conversion call
+        \App\Models\LeadContact::create([
+            'lead_id' => $lead->id,
+            'call_date' => now()->toDateString(),
+            'call_time' => now()->toTimeString(),
+            'caller_id' => $user->id,
+            'response_status' => 'Connected',
+            'notes' => 'Lead converted to Client. Deal Value: ৳' . number_format($validated['deal_value']),
+        ]);
+
         // Update lead status
         $lead->update(['status' => 'Converted']);
 

@@ -8,7 +8,8 @@
     <div class="py-8">
         <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-                <form action="{{ route('field-definitions.update', $fieldDefinition) }}" method="POST" class="p-6 space-y-6">
+                <form action="{{ route('field-definitions.update', $fieldDefinition) }}" method="POST"
+                    class="p-6 space-y-6">
                     @csrf
                     @method('PUT')
 
@@ -38,9 +39,10 @@
                         <label for="label" class="block text-sm font-medium text-gray-700 mb-2">
                             Display Label <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" name="label" id="label" value="{{ old('label', $fieldDefinition->label) }}"
-                               required placeholder="e.g., Company Website"
-                               class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <input type="text" name="label" id="label"
+                            value="{{ old('label', $fieldDefinition->label) }}" required
+                            placeholder="e.g., Company Website"
+                            class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @error('label')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -52,10 +54,17 @@
                             Field Type <span class="text-red-500">*</span>
                         </label>
                         <select name="type" id="type" required
-                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="text" {{ old('type', $fieldDefinition->type) === 'text' ? 'selected' : '' }}>Text</option>
-                            <option value="image" {{ old('type', $fieldDefinition->type) === 'image' ? 'selected' : '' }}>Image</option>
-                            <option value="link" {{ old('type', $fieldDefinition->type) === 'link' ? 'selected' : '' }}>Link (URL)</option>
+                            class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="text"
+                                {{ old('type', $fieldDefinition->type) === 'text' ? 'selected' : '' }}>Text</option>
+                            <option value="image"
+                                {{ old('type', $fieldDefinition->type) === 'image' ? 'selected' : '' }}>Image</option>
+                            <option value="link"
+                                {{ old('type', $fieldDefinition->type) === 'link' ? 'selected' : '' }}>Link (URL)
+                            </option>
+                            <option value="document"
+                                {{ old('type', $fieldDefinition->type) === 'document' ? 'selected' : '' }}>Document
+                                (PDF/Doc)</option>
                         </select>
                         @error('type')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -67,9 +76,9 @@
                         <label for="order" class="block text-sm font-medium text-gray-700 mb-2">
                             Display Order
                         </label>
-                        <input type="number" name="order" id="order" value="{{ old('order', $fieldDefinition->order) }}"
-                               min="0"
-                               class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <input type="number" name="order" id="order"
+                            value="{{ old('order', $fieldDefinition->order) }}" min="0"
+                            class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @error('order')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -78,8 +87,8 @@
                     <!-- Required -->
                     <div class="flex items-center">
                         <input type="checkbox" name="required" id="required" value="1"
-                               {{ old('required', $fieldDefinition->required) ? 'checked' : '' }}
-                               class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            {{ old('required', $fieldDefinition->required) ? 'checked' : '' }}
+                            class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <label for="required" class="ml-2 text-sm font-medium text-gray-700">
                             Required Field
                         </label>
@@ -88,8 +97,8 @@
                     <!-- Active -->
                     <div class="flex items-center">
                         <input type="checkbox" name="is_active" id="is_active" value="1"
-                               {{ old('is_active', $fieldDefinition->is_active) ? 'checked' : '' }}
-                               class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            {{ old('is_active', $fieldDefinition->is_active) ? 'checked' : '' }}
+                            class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <label for="is_active" class="ml-2 text-sm font-medium text-gray-700">
                             Active (visible in forms)
                         </label>
@@ -98,11 +107,11 @@
                     <!-- Actions -->
                     <div class="flex items-center justify-end gap-4 pt-4 border-t">
                         <a href="{{ route('field-definitions.index', ['type' => $fieldDefinition->model_type]) }}"
-                           class="px-4 py-2 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 font-semibold transition-all">
+                            class="px-4 py-2 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 font-semibold transition-all">
                             Cancel
                         </a>
                         <button type="submit"
-                                class="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-lg transition-all">
+                            class="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-lg transition-all">
                             Update Field
                         </button>
                     </div>

@@ -513,45 +513,52 @@
                                         async changeStatus(newStatus, leadId) {
                                             this.status = newStatus;
                                     
-                                            // Update lead status via AJAX
-                                            const formData = new FormData();
-                                            formData.append('_method', 'PATCH');
-                                            formData.append('status', newStatus);
-                                    
+                                            // 1. Update lead status
                                             try {
-                                                const response = await fetch(`/leads/${leadId}`, {
+                                                const statusResponse = await fetch(`/leads/${leadId}`, {
                                                     method: 'POST',
                                                     headers: {
+                                                        'Content-Type': 'application/json',
                                                         'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
                                                         'Accept': 'application/json'
                                                     },
-                                                    body: formData
+                                                    body: JSON.stringify({
+                                                        _method: 'PATCH',
+                                                        status: newStatus
+                                                    })
                                                 });
                                     
-                                                // If status changed to 'Contacted', create contact
-                                                if (newStatus === 'Contacted') {
-                                                    const contactData = new FormData();
-                                                    contactData.append('lead_id', leadId);
-                                                    contactData.append('call_date', new Date().toISOString().split('T')[0]);
-                                                    contactData.append('call_time', new Date().toTimeString().split(' ')[0].substring(0, 5));
-                                                    contactData.append('response_status', 'Call Later');
-                                                    contactData.append('notes', 'Auto-created from status change');
+                                                if (!statusResponse.ok) throw new Error('Failed to update status');
                                     
-                                                    await fetch('/contacts', {
+                                                // 2. If Contacted, create log
+                                                if (newStatus === 'Contacted') {
+                                                    const contactResponse = await fetch('/contacts', {
                                                         method: 'POST',
                                                         headers: {
+                                                            'Content-Type': 'application/json',
                                                             'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
                                                             'Accept': 'application/json'
                                                         },
-                                                        body: contactData
+                                                        body: JSON.stringify({
+                                                            lead_id: leadId,
+                                                            call_date: new Date().toISOString().split('T')[0],
+                                                            call_time: new Date().toTimeString().split(' ')[0].substring(0, 5),
+                                                            response_status: 'Call Later',
+                                                            notes: 'Auto-created from status change'
+                                                        })
                                                     });
+                                    
+                                                    if (!contactResponse.ok) {
+                                                        const err = await contactResponse.json();
+                                                        console.error('Contact creation failed:', err);
+                                                        alert('Status updated but failed to create contact log: ' + (err.message || JSON.stringify(err)));
+                                                    }
                                                 }
                                     
-                                                if (response.ok) {
-                                                    location.reload();
-                                                }
+                                                location.reload();
                                             } catch (error) {
-                                                console.error('Error updating status:', error);
+                                                console.error('Error:', error);
+                                                alert('An error occurred: ' + error.message);
                                             }
                                         }
                                     }" class="relative inline-block">
