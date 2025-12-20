@@ -135,21 +135,21 @@ class ClientController extends Controller
             if (in_array($normalizedFieldName, ['price', 'dealvalue', 'amount', 'cost', 'packageprice', 'value'])) {
                 // If value is numeric, update conversion
                 $numericValue = (float) filter_var($value, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-                
+
                 if ($numericValue > 0) {
                     $conversion = $client->conversion;
                     $convertedBy = $conversion->convertedBy;
-                    
+
                     if ($convertedBy) {
                         $commissionService = app(\App\Services\CommissionService::class);
                         $newCommission = $commissionService->calculateCommission($convertedBy, $numericValue);
-                        
+
                         $conversion->update([
                             'deal_value' => $numericValue,
                             'commission_amount' => $newCommission,
                         ]);
                     } else {
-                         $conversion->update([
+                        $conversion->update([
                             'deal_value' => $numericValue,
                         ]);
                     }

@@ -101,6 +101,35 @@
                 </div>
             @endif
 
+            {{-- Search Results Indicator --}}
+            @if(!empty($search))
+                <div class="rounded-2xl bg-gradient-to-r from-blue-50 to-cyan-50 p-4 border border-blue-200 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/30">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-gray-800">
+                                    Search Results for: <span class="text-blue-600">"{{ $search }}"</span>
+                                </p>
+                                <p class="text-xs text-gray-600">{{ $leads->count() }} lead(s) found</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('leads.index') }}"
+                            class="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-300 hover:bg-gray-50 hover:shadow-md">
+                            Clear Search
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            @endif
+
             {{-- Leads Table --}}
             <div class="overflow-hidden rounded-2xl bg-white shadow-lg shadow-gray-200/50 border border-gray-100">
                 <div class="overflow-x-auto">
@@ -166,7 +195,7 @@
                                         <div class="flex items-center gap-3">
                                             <div
                                                 class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white shadow-lg shadow-blue-500/25">
-                                                {{ strtoupper(substr($lead->customer_name ?? 'U', 0, 1)) }}
+                                                {{ strtoupper(substr($lead->client_name ?? 'U', 0, 1)) }}
                                             </div>
                                             <div>
                                                 <a href="{{ route('leads.show', $lead) }}"
@@ -174,7 +203,7 @@
                                                     {{ $lead->lead_number }}
                                                 </a>
                                                 <p class="text-sm font-medium text-gray-700">
-                                                    {{ $lead->customer_name ?? 'Unknown' }}</p>
+                                                    {{ $lead->client_name ?? 'Unknown' }}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -220,7 +249,7 @@
                                             status: '{{ $lead->status }}',
                                             async changeStatus(newStatus, leadId) {
                                                 this.status = newStatus;
-                                        
+
                                                 // 1. Update lead status
                                                 try {
                                                     const statusResponse = await fetch(`/leads/${leadId}`, {
@@ -235,9 +264,9 @@
                                                             status: newStatus
                                                         })
                                                     });
-                                        
+
                                                     if (!statusResponse.ok) throw new Error('Failed to update status');
-                                        
+
                                                     // 2. If Contacted, create log
                                                     if (newStatus === 'Contacted') {
                                                         const contactResponse = await fetch('/contacts', {
@@ -255,14 +284,14 @@
                                                                 notes: 'Auto-created from status change'
                                                             })
                                                         });
-                                        
+
                                                         if (!contactResponse.ok) {
                                                             const err = await contactResponse.json();
                                                             console.error('Contact creation failed:', err);
                                                             alert('Status updated but failed to create contact log: ' + (err.message || JSON.stringify(err)));
                                                         }
                                                     }
-                                        
+
                                                     location.reload();
                                                 } catch (error) {
                                                     console.error('Error:', error);

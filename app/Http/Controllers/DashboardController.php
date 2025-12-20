@@ -112,13 +112,13 @@ class DashboardController extends Controller
         $topPerformers = [];
         if ($user->isAdmin()) {
             $topPerformers = User::where('role', 'sales')
-                ->withCount(['conversions' => function($q) use ($thisMonth) {
+                ->withCount(['conversions' => function ($q) use ($thisMonth) {
                     $q->whereMonth('conversion_date', $thisMonth->month)
-                      ->whereYear('conversion_date', $thisMonth->year);
+                        ->whereYear('conversion_date', $thisMonth->year);
                 }])
-                ->withSum(['conversions' => function($q) use ($thisMonth) {
+                ->withSum(['conversions' => function ($q) use ($thisMonth) {
                     $q->whereMonth('conversion_date', $thisMonth->month)
-                      ->whereYear('conversion_date', $thisMonth->year);
+                        ->whereYear('conversion_date', $thisMonth->year);
                 }], 'deal_value')
                 ->orderBy('conversions_count', 'desc')
                 ->take(5)

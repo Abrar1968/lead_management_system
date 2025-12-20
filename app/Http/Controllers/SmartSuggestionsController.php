@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lead;
-use App\Models\LeadAssignmentSetting;
 use App\Services\AutoFollowUpService;
 use App\Services\SmartAssignService;
 
@@ -50,5 +49,21 @@ class SmartSuggestionsController extends Controller
             'unassignedLeads',
             'stats'
         ));
+    }
+
+    /**
+     * Manually process auto follow-up rules and create follow-ups.
+     */
+    public function processFollowups()
+    {
+        $result = $this->followUpService->processAutoFollowups(auth()->user()->isAdmin() ? null : auth()->user());
+
+        $message = sprintf(
+            'Auto follow-up processing complete! Created %d new follow-ups, skipped %d existing.',
+            $result['created'],
+            $result['skipped']
+        );
+
+        return redirect()->route('dashboard')->with('success', $message);
     }
 }

@@ -287,7 +287,7 @@
                                     <td class="px-4 py-4 text-sm">
                                         <a href="{{ route('leads.show', $conversion->lead) }}"
                                             class="font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
-                                            {{ $conversion->lead->customer_name }}
+                                            {{ $conversion->lead->client_name }}
                                         </a>
                                     </td>
                                     <td class="whitespace-nowrap px-4 py-4 text-right text-sm font-bold text-gray-900">

@@ -18,9 +18,9 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\SmartAssignController;
 use App\Http\Controllers\SmartSuggestionsController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -102,6 +102,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Smart Suggestions Dashboard (Unified View)
     Route::get('/smart-suggestions', [SmartSuggestionsController::class, 'index'])->name('smart-suggestions.index');
+    Route::post('/smart-suggestions/process-followups', [SmartSuggestionsController::class, 'processFollowups'])->name('smart-suggestions.process-followups');
 
     // Reports
     Route::get('/reports/print', [ReportController::class, 'print'])->name('reports.print');

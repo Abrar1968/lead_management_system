@@ -206,7 +206,7 @@
                                         </a>
                                     </td>
                                     <td class="whitespace-nowrap px-5 py-4 text-sm font-medium text-gray-900">
-                                        {{ $lead->customer_name }}
+                                        {{ $lead->client_name }}
                                     </td>
                                     <td class="whitespace-nowrap px-5 py-4 text-sm text-gray-500">
                                         {{ $lead->lead_date->format('M d, Y') }}

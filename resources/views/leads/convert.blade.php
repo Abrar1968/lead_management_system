@@ -52,7 +52,7 @@
                         <div class="divide-y divide-gray-100 p-4">
                             <div class="flex justify-between py-3">
                                 <span class="text-sm font-medium text-gray-500">Customer</span>
-                                <span class="text-sm font-bold text-gray-900">{{ $lead->customer_name }}</span>
+                                <span class="text-sm font-bold text-gray-900">{{ $lead->client_name }}</span>
                             </div>
                             <div class="flex justify-between py-3">
                                 <span class="text-sm font-medium text-gray-500">Phone</span>

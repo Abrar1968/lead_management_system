@@ -43,6 +43,11 @@
                                 <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-600">Converted On</th>
                                 <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-600">Package</th>
                                 <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-600">Support Contact</th>
+                                @foreach($dynamicFields as $field)
+                                    @if($field->type !== 'image')
+                                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-600">{{ $field->label }}</th>
+                                    @endif
+                                @endforeach
                                 <th class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-gray-600">Actions</th>
                             </tr>
                         </thead>
@@ -76,6 +81,31 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-600">{{ $client->support_contact_person ?? '-' }}</div>
                                     </td>
+                                    @foreach($dynamicFields as $field)
+                                        @if($field->type !== 'image')
+                                            @php
+                                                $fieldValue = $client->fieldValues->firstWhere('field_definition_id', $field->id);
+                                                $value = $fieldValue?->value;
+                                            @endphp
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                @if($field->type === 'document' && $value)
+                                                    <a href="{{ asset('storage/' . $value) }}" target="_blank"
+                                                        class="text-blue-600 hover:text-blue-800 text-xs font-medium inline-flex items-center gap-1">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                        </svg>
+                                                        View
+                                                    </a>
+                                                @elseif($field->type === 'link' && $value)
+                                                    <a href="{{ $value }}" target="_blank"
+                                                        class="text-blue-600 hover:text-blue-800 text-xs underline">Link</a>
+                                                @else
+                                                    <div class="text-sm text-gray-900">{{ Str::limit($value ?? '-', 20) }}</div>
+                                                @endif
+                                            </td>
+                                        @endif
+                                    @endforeach
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end gap-2">
                                             <a href="{{ route('clients.show', $client) }}"
@@ -87,7 +117,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                                    <td colspan="{{ 6 + $dynamicFields->where('type', '!=', 'image')->count() }}" class="px-6 py-12 text-center text-gray-500">
                                         <div class="flex flex-col items-center gap-2">
                                             <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />

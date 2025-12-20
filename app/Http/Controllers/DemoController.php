@@ -89,6 +89,8 @@ class DemoController extends Controller
             $fieldKey = 'dynamic_'.$field->name;
             if ($field->type === 'image') {
                 $rules[$fieldKey] = ($field->required ? 'required|' : 'nullable|').'image|max:2048';
+            } elseif ($field->type === 'document') {
+                $rules[$fieldKey] = ($field->required ? 'required|' : 'nullable|').'file|mimes:pdf,doc,docx,xls,xlsx,txt|max:5120';
             } elseif ($field->type === 'link') {
                 $rules[$fieldKey] = ($field->required ? 'required|' : 'nullable|').'url|max:500';
             } else {
@@ -118,7 +120,13 @@ class DemoController extends Controller
 
             if ($field->type === 'image' && $request->hasFile($fieldKey)) {
                 $value = $this->processImageUpload($request->file($fieldKey), $demo->id, $field->name);
-            } elseif ($field->type !== 'image') {
+            } elseif ($field->type === 'document' && $request->hasFile($fieldKey)) {
+                $file = $request->file($fieldKey);
+                $extension = $file->getClientOriginalExtension();
+                $filename = "demo_{$demo->id}_{$field->name}_".time().'.'.$extension;
+                $path = $file->storeAs('demos/documents', $filename, 'public');
+                $value = $path;
+            } elseif ($field->type !== 'image' && $field->type !== 'document') {
                 $value = $validated[$fieldKey] ?? null;
             }
 
@@ -213,13 +221,21 @@ class DemoController extends Controller
 
             if ($field->type === 'image' && $request->hasFile($fieldKey)) {
                 $value = $this->processImageUpload($request->file($fieldKey), $demo->id, $field->name);
-            } elseif ($field->type !== 'image') {
+            } elseif ($field->type === 'document' && $request->hasFile($fieldKey)) {
+                $file = $request->file($fieldKey);
+                $extension = $file->getClientOriginalExtension();
+                $filename = "demo_{$demo->id}_{$field->name}_".time().'.'.$extension;
+                $path = $file->storeAs('demos/documents', $filename, 'public');
+                $value = $path;
+            } elseif ($field->type !== 'image' && $field->type !== 'document') {
                 $value = $validated[$fieldKey] ?? null;
             } else {
-                continue; // Keep existing image
+                continue; // Keep existing file
             }
 
-            $demo->setFieldValue($field->id, $value);
+            if ($value !== null) {
+                $demo->setFieldValue($field->id, $value);
+            }
         }
 
         return redirect()
@@ -298,7 +314,7 @@ class DemoController extends Controller
     }
 
     /**
-     * Remove a dynamic field image.
+     * Remove a dynamic field file (image or document).
      */
     public function removeImage(Request $request, Demo $demo): RedirectResponse
     {
@@ -313,6 +329,6 @@ class DemoController extends Controller
             $fieldValue->delete();
         }
 
-        return back()->with('success', 'Image removed successfully.');
+        return back()->with('success', 'File removed successfully.');
     }
 }

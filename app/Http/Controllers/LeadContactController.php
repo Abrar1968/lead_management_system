@@ -138,9 +138,9 @@ class LeadContactController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'message' => 'Call record updated.',
-                'contact' => $contact->fresh()
+                'contact' => $contact->fresh(),
             ]);
         }
 

@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\FollowUp;
 use App\Models\Lead;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Carbon\Carbon;
 
 class FollowUpController extends Controller
 {
@@ -52,7 +52,7 @@ class FollowUpController extends Controller
         $targetDate = Carbon::parse($date);
 
         // Filter by date if specifically requested (not using date range)
-        if ($request->has('date') && !$request->has('date_from') && !$request->has('date_to')) {
+        if ($request->has('date') && ! $request->has('date_from') && ! $request->has('date_to')) {
             $query->whereDate('follow_up_date', $targetDate);
         }
 

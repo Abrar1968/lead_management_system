@@ -61,6 +61,58 @@ class AutoFollowUpService
     }
 
     /**
+     * Process auto follow-ups for all matching leads.
+     * Creates follow-up records for leads matching active rules.
+     *
+     * @return array{created: int, skipped: int}
+     */
+    public function processAutoFollowups(?User $user = null): array
+    {
+        $matchingLeads = $this->getMatchingLeads($user);
+        $created = 0;
+        $skipped = 0;
+
+        // Default to first admin if no user specified
+        if (! $user) {
+            $user = User::where('role', 'admin')->first();
+        }
+
+        foreach ($matchingLeads as $match) {
+            $lead = $match['lead'];
+            $topRule = collect($match['rules'])->sortBy('priority')->first();
+
+            // Check if follow-up already exists for tomorrow
+            $existingFollowUp = \App\Models\FollowUp::where('lead_id', $lead->id)
+                ->where('follow_up_date', now()->addDay()->format('Y-m-d'))
+                ->where('status', 'Pending')
+                ->first();
+
+            if ($existingFollowUp) {
+                $skipped++;
+
+                continue;
+            }
+
+            // Create follow-up for tomorrow
+            \App\Models\FollowUp::create([
+                'lead_id' => $lead->id,
+                'follow_up_date' => now()->addDay()->format('Y-m-d'),
+                'follow_up_time' => '10:00:00',
+                'notes' => 'Auto-created by rule: '.$topRule['name'],
+                'status' => 'Pending',
+                'created_by' => $lead->assigned_to ?? $user->id,
+            ]);
+
+            $created++;
+        }
+
+        return [
+            'created' => $created,
+            'skipped' => $skipped,
+        ];
+    }
+
+    /**
      * Preview leads that match a specific rule.
      *
      * @return Collection<Lead>
@@ -135,25 +187,25 @@ class AutoFollowUpService
     {
         return match ($field) {
             // Lead fields
-            'status' => $lead->status,
-            'priority' => $lead->priority,
-            'source' => $lead->source,
-            'is_repeat_lead' => $lead->is_repeat_lead,
-            'days_since_lead' => $lead->lead_date ? Carbon::parse($lead->lead_date)->diffInDays(now()) : null,
+            'lead.status' => $lead->status,
+            'lead.priority' => $lead->priority,
+            'lead.source' => $lead->source,
+            'lead.is_repeat_lead' => $lead->is_repeat_lead,
+            'lead.days_since_lead' => $lead->lead_date ? (int) Carbon::parse($lead->lead_date)->diffInDays(now()) : null,
 
             // Contact fields
-            'response_status' => $lead->contacts->last()?->response_status,
-            'total_calls' => $lead->contacts->count(),
-            'days_since_last_call' => $this->getDaysSinceLastCall($lead),
+            'contact.response_status' => $lead->contacts->last()?->response_status,
+            'contact.total_calls' => $lead->contacts->count(),
+            'contact.days_since_last_call' => $this->getDaysSinceLastCall($lead),
 
             // Follow-up fields
-            'interest' => $lead->followUps->last()?->interest,
-            'pending_count' => $lead->followUps->where('status', 'Pending')->count(),
-            'days_since_last' => $this->getDaysSinceLastFollowUp($lead),
+            'followup.interest' => $lead->followUps->last()?->interest,
+            'followup.pending_count' => $lead->followUps->where('status', 'Pending')->count(),
+            'followup.days_since_last' => $this->getDaysSinceLastFollowUp($lead),
 
             // Meeting fields
-            'has_meeting' => $lead->meetings->isNotEmpty(),
-            'last_outcome' => $lead->meetings->last()?->outcome,
+            'meeting.has_any' => $lead->meetings->isNotEmpty(),
+            'meeting.last_outcome' => $lead->meetings->last()?->outcome,
 
             default => null,
         };
@@ -170,7 +222,7 @@ class AutoFollowUpService
             return null;
         }
 
-        return Carbon::parse($lastContact->call_date)->diffInDays(now());
+        return (int) Carbon::parse($lastContact->call_date)->diffInDays(now());
     }
 
     /**
@@ -184,7 +236,7 @@ class AutoFollowUpService
             return null;
         }
 
-        return Carbon::parse($lastFollowUp->follow_up_date)->diffInDays(now());
+        return (int) Carbon::parse($lastFollowUp->follow_up_date)->diffInDays(now());
     }
 
     /**

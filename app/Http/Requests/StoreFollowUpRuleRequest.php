@@ -29,7 +29,7 @@ class StoreFollowUpRuleRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'priority' => ['required', 'integer', 'min:1', 'max:100'],
+            'priority' => ['required', 'integer', 'min:0', 'max:100'],
             'is_active' => ['boolean'],
             'logic_type' => ['required', Rule::in(['AND', 'OR'])],
             'conditions' => ['required', 'array', 'min:1'],
