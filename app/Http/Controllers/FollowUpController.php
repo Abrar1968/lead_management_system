@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Carbon\Carbon;
 
 class FollowUpController extends Controller
 {
@@ -48,17 +49,16 @@ class FollowUpController extends Controller
             $query->where('status', $status);
         }
 
-        // Filter by date range
-        if ($request->filled('date_from')) {
-            $query->whereDate('follow_up_date', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('follow_up_date', '<=', $request->date_to);
+        $targetDate = Carbon::parse($date);
+
+        // Filter by date if specifically requested (not using date range)
+        if ($request->has('date') && !$request->has('date_from') && !$request->has('date_to')) {
+            $query->whereDate('follow_up_date', $targetDate);
         }
 
-        // Today's follow-ups
+        // Today's follow-ups (becomes 'Selected Date' follow-ups)
         $todayFollowUps = FollowUp::with(['lead', 'lead.assignedTo'])
-            ->whereDate('follow_up_date', today())
+            ->whereDate('follow_up_date', $targetDate)
             ->where('status', 'Pending')
             ->whereHas('lead')
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
@@ -67,7 +67,7 @@ class FollowUpController extends Controller
 
         // Overdue follow-ups
         $overdueFollowUps = FollowUp::with(['lead', 'lead.assignedTo'])
-            ->whereDate('follow_up_date', '<', today())
+            ->whereDate('follow_up_date', '<', $targetDate)
             ->where('status', 'Pending')
             ->whereHas('lead')
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
@@ -92,11 +92,11 @@ class FollowUpController extends Controller
                 ->count(),
         ];
 
-        // Upcoming follow-ups (next 7 days excluding today)
+        // Upcoming follow-ups (next 7 days excluding target date)
         $upcomingFollowUps = FollowUp::with(['lead'])
             ->where('status', 'Pending')
-            ->whereDate('follow_up_date', '>', today())
-            ->whereDate('follow_up_date', '<=', today()->addDays(7))
+            ->whereDate('follow_up_date', '>', $targetDate)
+            ->whereDate('follow_up_date', '<=', $targetDate->copy()->addDays(7))
             ->when($user->isSalesPerson(), fn ($q) => $q->whereHas('lead', fn ($lq) => $lq->where('assigned_to', $user->id)))
             ->orderBy('follow_up_date')
             ->orderBy('follow_up_time')
@@ -112,6 +112,7 @@ class FollowUpController extends Controller
             'interestStatuses' => self::INTEREST_STATUSES,
             'currentStatus' => $status,
             'currentDate' => $date,
+            'date' => $date,
             'users' => User::all(),
         ]);
     }

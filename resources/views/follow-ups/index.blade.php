@@ -264,7 +264,9 @@
                                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                         </div>
-                        <h3 class="font-semibold text-white">Today</h3>
+                        <h3 class="font-semibold text-white">
+                            {{ \Carbon\Carbon::parse($currentDate ?? now())->isToday() ? 'Today' : \Carbon\Carbon::parse($currentDate ?? now())->format('M j, Y') }}
+                        </h3>
                     </div>
                     <span
                         class="inline-flex items-center rounded-lg bg-white/20 px-2.5 py-1 text-xs font-bold text-white">{{ $todayFollowUps->count() }}</span>
