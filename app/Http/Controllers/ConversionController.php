@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClientDetail;
 use App\Models\Conversion;
 use App\Models\Lead;
 use App\Services\CommissionService;
@@ -64,7 +65,7 @@ class ConversionController extends Controller
         $commissionAmount = $this->commissionService->calculateCommission($user, $validated['deal_value']);
 
         // Create conversion with immutable commission data
-        Conversion::create([
+        $conversion = Conversion::create([
             'lead_id' => $lead->id,
             'converted_by' => $user->id,
             'conversion_date' => $validated['conversion_date'],
@@ -74,6 +75,21 @@ class ConversionController extends Controller
             'commission_amount' => $commissionAmount,
             'package_plan' => $validated['package_plan'] ?? ($lead->service->name ?? 'Standard'),
             'notes' => $validated['notes'] ?? null,
+        ]);
+
+        // Auto-create ClientDetail record for tracking converted clients
+        ClientDetail::create([
+            'conversion_id' => $conversion->id,
+        ]);
+
+        // Create a contact record for the conversion call
+        \App\Models\LeadContact::create([
+            'lead_id' => $lead->id,
+            'call_date' => now()->toDateString(),
+            'call_time' => now()->toTimeString(),
+            'caller_id' => $user->id,
+            'response_status' => 'Connected',
+            'notes' => 'Lead converted to Client. Deal Value: ৳' . number_format($validated['deal_value']),
         ]);
 
         // Update lead status

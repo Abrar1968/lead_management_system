@@ -35,12 +35,24 @@
                     <x-nav-link :href="route('meetings.index')" :active="request()->routeIs('meetings.*')">
                         {{ __('Meetings') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('demos.index')" :active="request()->routeIs('demos.*')">
+                        {{ __('Demos') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('clients.index')" :active="request()->routeIs('clients.*')">
+                        {{ __('Clients') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('smart-suggestions.index')" :active="request()->routeIs('smart-suggestions.*') || request()->routeIs('smart-assign.*') || request()->routeIs('follow-up-rules.*')">
+                        {{ __('Smart AI') }}
+                    </x-nav-link>
                     @if(auth()->user()->isAdmin())
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                         {{ __('Users') }}
                     </x-nav-link>
                     <x-nav-link :href="route('admin.extra-commissions.index')" :active="request()->routeIs('admin.extra-commissions.*')">
                         {{ __('Commissions') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('field-definitions.index')" :active="request()->routeIs('field-definitions.*')">
+                        {{ __('Fields') }}
                     </x-nav-link>
                     @endif
                 </div>
@@ -125,6 +137,15 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('meetings.index')" :active="request()->routeIs('meetings.*')">
                 {{ __('Meetings') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('demos.index')" :active="request()->routeIs('demos.*')">
+                {{ __('Demos') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('clients.index')" :active="request()->routeIs('clients.*')">
+                {{ __('Clients') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('smart-suggestions.index')" :active="request()->routeIs('smart-suggestions.*') || request()->routeIs('smart-assign.*') || request()->routeIs('follow-up-rules.*')">
+                {{ __('Smart AI') }}
             </x-responsive-nav-link>
             @if(auth()->user()->isAdmin())
             <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">

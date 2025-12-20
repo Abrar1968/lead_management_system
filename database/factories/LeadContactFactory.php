@@ -27,7 +27,7 @@ class LeadContactFactory extends Factory
             'call_date' => $this->faker->dateTimeBetween('-30 days', 'now'),
             'call_time' => $this->faker->time('H:i'),
             'caller_id' => User::factory(),
-            'response_status' => $this->faker->randomElement(['Answered', 'No Answer', 'Busy', 'Wrong Number', 'Callback']),
+            'response_status' => $this->faker->randomElement(['Interested', '50%', 'Yes', 'Call Later', 'No Response', 'No', 'Phone off']),
             'notes' => $this->faker->optional()->sentence(),
         ];
     }
