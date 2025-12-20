@@ -83,6 +83,11 @@
                                 <th
                                     class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-600">
                                     Created By</th>
+                                @foreach($dynamicFields as $field)
+                                    @if($field->type !== 'image')
+                                        <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-600">{{ $field->label }}</th>
+                                    @endif
+                                @endforeach
                                 <th
                                     class="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-gray-600">
                                     Actions</th>
@@ -168,6 +173,31 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-900">{{ $demo->createdBy->name ?? 'N/A' }}</div>
                                     </td>
+                                    @foreach($dynamicFields as $field)
+                                        @if($field->type !== 'image')
+                                            @php
+                                                $fieldValue = $demo->fieldValues->firstWhere('field_definition_id', $field->id);
+                                                $value = $fieldValue?->value;
+                                            @endphp
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                @if($field->type === 'document' && $value)
+                                                    <a href="{{ asset('storage/' . $value) }}" target="_blank"
+                                                        class="text-blue-600 hover:text-blue-800 text-xs font-medium inline-flex items-center gap-1">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                        </svg>
+                                                        View
+                                                    </a>
+                                                @elseif($field->type === 'link' && $value)
+                                                    <a href="{{ $value }}" target="_blank"
+                                                        class="text-blue-600 hover:text-blue-800 text-xs underline">Link</a>
+                                                @else
+                                                    <div class="text-sm text-gray-900">{{ Str::limit($value ?? '-', 20) }}</div>
+                                                @endif
+                                            </td>
+                                        @endif
+                                    @endforeach
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end gap-2">
                                             <a href="{{ route('demos.show', $demo) }}"
@@ -179,7 +209,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                                    <td colspan="{{ 7 + $dynamicFields->where('type', '!=', 'image')->count() }}" class="px-6 py-12 text-center text-gray-500">
                                         <div class="flex flex-col items-center gap-2">
                                             <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">

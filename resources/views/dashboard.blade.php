@@ -215,6 +215,15 @@
                     <div>
                         <h3 class="text-xl font-bold">Smart Suggestions</h3>
                         <p class="text-white/80 text-sm">AI-powered follow-up and lead assignment recommendations</p>
+                        <form action="{{ route('smart-suggestions.process-followups') }}" method="POST" class="inline mt-2" onsubmit="return confirm('Process auto follow-up rules for all matching leads?');">
+                            @csrf
+                            <button type="submit" class="bg-white/30 hover:bg-white/40 px-4 py-1.5 rounded-lg font-semibold text-sm transition-colors inline-flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                                Process Rules
+                            </button>
+                        </form>
                     </div>
                 </div>
                 <div class="flex items-center gap-6">

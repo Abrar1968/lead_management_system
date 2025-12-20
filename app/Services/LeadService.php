@@ -68,24 +68,27 @@ class LeadService
      */
     public function generateLeadNumber(string $date): string
     {
-        $dateStr = Carbon::parse($date)->format('Ymd');
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($date) {
+            $dateStr = Carbon::parse($date)->format('Ymd');
 
-        // Get the highest sequence number for this date
-        $latestLead = Lead::whereDate('lead_date', $date)
-            ->where('lead_number', 'LIKE', "LEAD-{$dateStr}-%")
-            ->orderByRaw('CAST(SUBSTRING(lead_number, -3) AS UNSIGNED) DESC')
-            ->first();
+            // Get the highest sequence number for this date with row locking
+            $latestLead = Lead::whereDate('lead_date', $date)
+                ->where('lead_number', 'LIKE', "LEAD-{$dateStr}-%")
+                ->orderByRaw('CAST(SUBSTRING(lead_number, -3) AS UNSIGNED) DESC')
+                ->lockForUpdate() // Prevent race conditions
+                ->first();
 
-        if ($latestLead) {
-            // Extract the sequence number and increment it
-            $lastSequence = (int) substr($latestLead->lead_number, -3);
-            $nextSequence = $lastSequence + 1;
-        } else {
-            // First lead of the day
-            $nextSequence = 1;
-        }
+            if ($latestLead) {
+                // Extract the sequence number and increment it
+                $lastSequence = (int) substr($latestLead->lead_number, -3);
+                $nextSequence = $lastSequence + 1;
+            } else {
+                // First lead of the day
+                $nextSequence = 1;
+            }
 
-        return sprintf('LEAD-%s-%03d', $dateStr, $nextSequence);
+            return sprintf('LEAD-%s-%03d', $dateStr, $nextSequence);
+        });
     }
 
     /**
@@ -162,6 +165,30 @@ class LeadService
             $data['lead_time'] = now()->format('H:i');
         }
 
+        // Retry logic for duplicate lead numbers (race condition fallback)
+        $maxRetries = 3;
+        $attempt = 0;
+
+        while ($attempt < $maxRetries) {
+            try {
+                return $this->repository->create($data);
+            } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+                $attempt++;
+
+                if ($attempt >= $maxRetries) {
+                    throw $e;
+                }
+
+                // Regenerate lead number and retry
+                $leadDate = $data['lead_date'] ?? now()->format('Y-m-d');
+                $data['lead_number'] = $this->generateLeadNumber($leadDate);
+
+                // Small delay before retry (10ms)
+                usleep(10000);
+            }
+        }
+
+        // This should never be reached, but just in case
         return $this->repository->create($data);
     }
 
@@ -179,7 +206,7 @@ class LeadService
             $user = \Illuminate\Support\Facades\Auth::user();
             $commissionService = app(\App\Services\CommissionService::class);
             $dealValue = 0; // Default to 0 for manual status change
-            
+
             $commissionAmount = $commissionService->calculateCommission($user, $dealValue);
 
             $conversion = \App\Models\Conversion::create([
@@ -205,7 +232,7 @@ class LeadService
                 'call_date' => now(),
                 'call_time' => now(),
                 'daily_call_made' => true,
-                'response_status' => 'Connected',
+                'response_status' => 'Yes',
                 'notes' => 'Lead converted to Client',
             ]);
         }
@@ -239,6 +266,16 @@ class LeadService
         $userId = $user && ! $user->isAdmin() ? $user->id : null;
 
         return $this->repository->getRecent($limit, $userId);
+    }
+
+    /**
+     * Search leads by phone number, client name, or lead number
+     */
+    public function searchLeads(string $search, ?User $user = null): Collection
+    {
+        $userId = $user && ! $user->isAdmin() ? $user->id : null;
+
+        return $this->repository->search($search, $userId);
     }
 
     /**

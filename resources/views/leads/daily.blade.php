@@ -358,7 +358,7 @@
                                             {{ $lead->lead_number }}
                                         </a>
                                         <h3 class="mt-1 text-lg font-bold text-gray-900">
-                                            {{ $lead->customer_name ?? 'Unknown' }}
+                                            {{ $lead->client_name ?? 'Unknown' }}
                                         </h3>
                                     </div>
 
@@ -484,6 +484,18 @@
                                     @endif
                                 </div>
 
+                                {{-- Initial Remarks --}}
+                                @if($lead->initial_remarks)
+                                    <div class="mt-3 rounded-lg bg-blue-50 px-3 py-2 border-l-4 border-blue-500">
+                                        <div class="flex items-start gap-2">
+                                            <svg class="h-4 w-4 mt-0.5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                            </svg>
+                                            <p class="text-xs text-gray-700 leading-relaxed">{{ $lead->initial_remarks }}</p>
+                                        </div>
+                                    </div>
+                                @endif
+
                                 {{-- Tags --}}
                                 <div class="mt-4 flex flex-wrap gap-2">
                                     <span
@@ -512,7 +524,7 @@
                                         status: '{{ $lead->status }}',
                                         async changeStatus(newStatus, leadId) {
                                             this.status = newStatus;
-                                    
+
                                             // 1. Update lead status
                                             try {
                                                 const statusResponse = await fetch(`/leads/${leadId}`, {
@@ -527,9 +539,9 @@
                                                         status: newStatus
                                                     })
                                                 });
-                                    
+
                                                 if (!statusResponse.ok) throw new Error('Failed to update status');
-                                    
+
                                                 // 2. If Contacted, create log
                                                 if (newStatus === 'Contacted') {
                                                     const contactResponse = await fetch('/contacts', {
@@ -547,14 +559,14 @@
                                                             notes: 'Auto-created from status change'
                                                         })
                                                     });
-                                    
+
                                                     if (!contactResponse.ok) {
                                                         const err = await contactResponse.json();
                                                         console.error('Contact creation failed:', err);
                                                         alert('Status updated but failed to create contact log: ' + (err.message || JSON.stringify(err)));
                                                     }
                                                 }
-                                    
+
                                                 location.reload();
                                             } catch (error) {
                                                 console.error('Error:', error);

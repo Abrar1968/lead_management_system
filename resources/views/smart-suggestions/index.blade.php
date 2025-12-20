@@ -138,18 +138,26 @@
                     @else
                         <div class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
                             @foreach($followUpSuggestions->take(5) as $suggestion)
+                                @php
+                                    $primaryRule = $suggestion['rules'][0] ?? null;
+                                @endphp
                                 <div class="p-4 hover:bg-gray-50 transition-colors">
                                     <div class="flex items-center justify-between">
                                         <div>
                                             <p class="font-semibold text-gray-900">{{ $suggestion['lead']->lead_number }}</p>
                                             <p class="text-sm text-gray-500">{{ $suggestion['lead']->client_name ?? $suggestion['lead']->phone_number }}</p>
                                         </div>
+                                        @if($primaryRule)
                                         <div class="text-right">
                                             <span class="px-2.5 py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-lg">
-                                                {{ $suggestion['rule']->follow_up_type ?? 'Call' }}
+                                                Follow-up
                                             </span>
-                                            <p class="text-xs text-gray-400 mt-1">{{ $suggestion['rule']->name }}</p>
+                                            <p class="text-xs text-gray-400 mt-1">{{ $primaryRule['name'] }}</p>
+                                            @if(count($suggestion['rules']) > 1)
+                                                <p class="text-xs text-gray-400">+{{ count($suggestion['rules']) - 1 }} more</p>
+                                            @endif
                                         </div>
+                                        @endif
                                     </div>
                                     <div class="mt-2 flex gap-2">
                                         <a href="{{ route('leads.show', $suggestion['lead']) }}"
@@ -165,8 +173,7 @@
                                               action="{{ route('follow-ups.quick-add', $suggestion['lead']) }}"
                                               method="POST" class="hidden">
                                             @csrf
-                                            <input type="hidden" name="follow_up_type" value="{{ $suggestion['rule']->follow_up_type ?? 'Call' }}">
-                                            <input type="hidden" name="notes" value="Auto-suggested by: {{ $suggestion['rule']->name }}">
+                                            <input type="hidden" name="notes" value="Auto-suggested by: {{ $primaryRule['name'] ?? 'Follow-up Rule' }}">
                                         </form>
                                     </div>
                                 </div>

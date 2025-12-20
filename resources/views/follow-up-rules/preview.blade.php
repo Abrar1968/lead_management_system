@@ -107,7 +107,7 @@
                                             <div class="text-sm text-gray-500">{{ $lead->lead_date->format('M d, Y') }}</div>
                                         </td>
                                         <td class="px-6 py-4">
-                                            <div class="font-medium text-gray-900">{{ $lead->customer_name ?: 'N/A' }}</div>
+                                            <div class="font-medium text-gray-900">{{ $lead->client_name ?: 'N/A' }}</div>
                                             <div class="text-sm text-gray-500">{{ $lead->phone_number }}</div>
                                         </td>
                                         <td class="px-6 py-4">

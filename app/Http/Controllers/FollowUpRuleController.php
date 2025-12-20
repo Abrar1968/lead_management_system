@@ -62,30 +62,60 @@ class FollowUpRuleController extends Controller
         $data = $request->validated();
         $user = $request->user();
 
-        DB::transaction(function () use ($data, $user) {
-            // Create the rule - user_id is null for admin (global rule)
-            $rule = FollowUpRule::create([
-                'user_id' => $user->isAdmin() ? null : $user->id,
-                'name' => $data['name'],
-                'description' => $data['description'] ?? null,
-                'priority' => $data['priority'],
-                'is_active' => $data['is_active'] ?? true,
-                'logic_type' => $data['logic_type'],
+        \Illuminate\Support\Facades\Log::info('Creating follow-up rule', [
+            'user_id' => $user->id,
+            'rule_name' => $data['name'],
+            'conditions_count' => count($data['conditions']),
+            'conditions' => $data['conditions'],
+        ]);
+
+        try {
+            DB::transaction(function () use ($data, $user) {
+                // Create the rule - user_id is null for admin (global rule)
+                $rule = FollowUpRule::create([
+                    'user_id' => $user->isAdmin() ? null : $user->id,
+                    'name' => $data['name'],
+                    'description' => $data['description'] ?? null,
+                    'priority' => $data['priority'],
+                    'is_active' => $data['is_active'] ?? true,
+                    'logic_type' => $data['logic_type'],
+                ]);
+
+                \Illuminate\Support\Facades\Log::info('Follow-up rule created', ['rule_id' => $rule->id]);
+
+                // Create conditions
+                foreach ($data['conditions'] as $index => $condition) {
+                    $conditionRecord = $rule->conditions()->create([
+                        'field' => $condition['field'],
+                        'operator' => $condition['operator'],
+                        'value' => $this->normalizeConditionValue($condition['value'] ?? null),
+                    ]);
+
+                    \Illuminate\Support\Facades\Log::info('Condition created', [
+                        'rule_id' => $rule->id,
+                        'condition_id' => $conditionRecord->id,
+                        'field' => $condition['field'],
+                        'operator' => $condition['operator'],
+                    ]);
+                }
+            });
+
+            \Illuminate\Support\Facades\Log::info('Follow-up rule creation completed successfully');
+
+            return redirect()
+                ->route('follow-up-rules.index')
+                ->with('success', 'Follow-up rule created successfully!');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error creating follow-up rule', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
-            // Create conditions
-            foreach ($data['conditions'] as $condition) {
-                $rule->conditions()->create([
-                    'field' => $condition['field'],
-                    'operator' => $condition['operator'],
-                    'value' => $this->normalizeConditionValue($condition['value'] ?? null),
-                ]);
-            }
-        });
-
-        return redirect()
-            ->route('follow-up-rules.index')
-            ->with('success', 'Follow-up rule created successfully!');
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Error creating rule: '.$e->getMessage());
+        }
     }
 
     /**

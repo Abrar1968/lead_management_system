@@ -17,6 +17,25 @@
 
     <div class="py-6">
         <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <!-- Validation Errors -->
+            @if ($errors->any())
+                <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-semibold text-red-800">Please fix the following errors:</h3>
+                            <ul class="mt-2 list-disc list-inside text-sm text-red-700 space-y-1">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <form action="{{ route('follow-up-rules.store') }}" method="POST"
                   x-data="ruleForm()"
                   class="space-y-6 bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 p-6">
@@ -101,25 +120,25 @@
                                         class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500" required>
                                     <option value="">Select field...</option>
                                     <optgroup label="Lead Fields">
-                                        <option value="status">Status</option>
-                                        <option value="priority">Priority</option>
-                                        <option value="source">Source</option>
-                                        <option value="is_repeat_lead">Is Repeat Lead</option>
-                                        <option value="days_since_lead">Days Since Lead Created</option>
+                                        <option value="lead.status">Status</option>
+                                        <option value="lead.priority">Priority</option>
+                                        <option value="lead.source">Source</option>
+                                        <option value="lead.is_repeat_lead">Is Repeat Lead</option>
+                                        <option value="lead.days_since_lead">Days Since Lead Created</option>
                                     </optgroup>
                                     <optgroup label="Contact Fields">
-                                        <option value="response_status">Last Response Status</option>
-                                        <option value="total_calls">Total Calls Made</option>
-                                        <option value="days_since_last_call">Days Since Last Call</option>
+                                        <option value="contact.response_status">Last Response Status</option>
+                                        <option value="contact.total_calls">Total Calls Made</option>
+                                        <option value="contact.days_since_last_call">Days Since Last Call</option>
                                     </optgroup>
                                     <optgroup label="Follow-up Fields">
-                                        <option value="interest">Last Interest Level</option>
-                                        <option value="pending_follow_ups">Pending Follow-ups Count</option>
-                                        <option value="days_since_follow_up">Days Since Last Follow-up</option>
+                                        <option value="followup.interest">Last Interest Level</option>
+                                        <option value="followup.pending_count">Pending Follow-ups Count</option>
+                                        <option value="followup.days_since_last">Days Since Last Follow-up</option>
                                     </optgroup>
                                     <optgroup label="Meeting Fields">
-                                        <option value="has_meeting">Has Any Meeting</option>
-                                        <option value="meeting_outcome">Last Meeting Outcome</option>
+                                        <option value="meeting.has_any">Has Any Meeting</option>
+                                        <option value="meeting.last_outcome">Last Meeting Outcome</option>
                                     </optgroup>
                                 </select>
                             </div>
@@ -145,7 +164,7 @@
                             <div class="flex-1 min-w-[180px]" x-show="!['is_null', 'is_not_null'].includes(condition.operator)">
                                 <label class="block text-xs font-medium text-gray-500 mb-1">Value</label>
                                 <!-- Dynamic value input based on field type -->
-                                <template x-if="['status'].includes(condition.field)">
+                                <template x-if="['lead.status'].includes(condition.field)">
                                     <select :name="'conditions[' + index + '][value]'" x-model="condition.value"
                                             class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option value="">Select...</option>
@@ -157,7 +176,7 @@
                                         <option value="Lost">Lost</option>
                                     </select>
                                 </template>
-                                <template x-if="['priority'].includes(condition.field)">
+                                <template x-if="['lead.priority'].includes(condition.field)">
                                     <select :name="'conditions[' + index + '][value]'" x-model="condition.value"
                                             class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option value="">Select...</option>
@@ -166,7 +185,7 @@
                                         <option value="Low">Low</option>
                                     </select>
                                 </template>
-                                <template x-if="['source'].includes(condition.field)">
+                                <template x-if="['lead.source'].includes(condition.field)">
                                     <select :name="'conditions[' + index + '][value]'" x-model="condition.value"
                                             class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option value="">Select...</option>
@@ -175,7 +194,7 @@
                                         <option value="Website">Website</option>
                                     </select>
                                 </template>
-                                <template x-if="['is_repeat_lead', 'has_meeting'].includes(condition.field)">
+                                <template x-if="['lead.is_repeat_lead', 'meeting.has_any'].includes(condition.field)">
                                     <select :name="'conditions[' + index + '][value]'" x-model="condition.value"
                                             class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option value="">Select...</option>
@@ -183,22 +202,20 @@
                                         <option value="0">No</option>
                                     </select>
                                 </template>
-                                <template x-if="['response_status'].includes(condition.field)">
+                                <template x-if="['contact.response_status'].includes(condition.field)">
                                     <select :name="'conditions[' + index + '][value]'" x-model="condition.value"
                                             class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option value="">Select...</option>
                                         <option value="Yes">Yes</option>
                                         <option value="No">No</option>
-                                        <option value="No Res.">No Response</option>
+                                        <option value="No Response">No Response</option>
                                         <option value="50%">50% Interest</option>
                                         <option value="Call Later">Call Later</option>
                                         <option value="Phone off">Phone Off</option>
                                         <option value="Interested">Interested</option>
-                                        <option value="Demo Delivered">Demo Delivered</option>
-                                        <option value="80%">80% Interest</option>
                                     </select>
                                 </template>
-                                <template x-if="['interest'].includes(condition.field)">
+                                <template x-if="['followup.interest'].includes(condition.field)">
                                     <select :name="'conditions[' + index + '][value]'" x-model="condition.value"
                                             class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option value="">Select...</option>
@@ -209,7 +226,7 @@
                                         <option value="50%">50%</option>
                                     </select>
                                 </template>
-                                <template x-if="['meeting_outcome'].includes(condition.field)">
+                                <template x-if="['meeting.last_outcome'].includes(condition.field)">
                                     <select :name="'conditions[' + index + '][value]'" x-model="condition.value"
                                             class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option value="">Select...</option>
@@ -219,12 +236,12 @@
                                         <option value="Rescheduled">Rescheduled</option>
                                     </select>
                                 </template>
-                                <template x-if="['days_since_lead', 'total_calls', 'days_since_last_call', 'pending_follow_ups', 'days_since_follow_up'].includes(condition.field)">
+                                <template x-if="['lead.days_since_lead', 'contact.total_calls', 'contact.days_since_last_call', 'followup.pending_count', 'followup.days_since_last'].includes(condition.field)">
                                     <input type="number" :name="'conditions[' + index + '][value]'" x-model="condition.value"
                                            class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500"
                                            placeholder="Enter number..." min="0">
                                 </template>
-                                <template x-if="!['status', 'priority', 'source', 'is_repeat_lead', 'has_meeting', 'response_status', 'interest', 'meeting_outcome', 'days_since_lead', 'total_calls', 'days_since_last_call', 'pending_follow_ups', 'days_since_follow_up'].includes(condition.field)">
+                                <template x-if="!['lead.status', 'lead.priority', 'lead.source', 'lead.is_repeat_lead', 'meeting.has_any', 'contact.response_status', 'followup.interest', 'meeting.last_outcome', 'lead.days_since_lead', 'contact.total_calls', 'contact.days_since_last_call', 'followup.pending_count', 'followup.days_since_last'].includes(condition.field)">
                                     <input type="text" :name="'conditions[' + index + '][value]'" x-model="condition.value"
                                            class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500"
                                            placeholder="Enter value...">

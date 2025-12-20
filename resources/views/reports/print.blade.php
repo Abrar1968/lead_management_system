@@ -167,7 +167,7 @@
                 @forelse($conversions as $conversion)
                     <tr class="hover:bg-gray-50">
                         <td class="px-5 py-4 font-medium text-gray-600">{{ $conversion->conversion_date->format('d M') }}</td>
-                        <td class="px-5 py-4 font-bold text-gray-900">{{ $conversion->lead->customer_name }}</td>
+                        <td class="px-5 py-4 font-bold text-gray-900">{{ $conversion->lead->client_name }}</td>
                         <td class="px-5 py-4 text-right font-bold text-gray-900">৳{{ number_format($conversion->deal_value) }}</td>
                         <td class="px-5 py-4 text-right font-bold text-emerald-600">৳{{ number_format($conversion->commission_amount) }}</td>
                     </tr>

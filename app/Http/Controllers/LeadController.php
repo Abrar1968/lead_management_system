@@ -24,11 +24,18 @@ class LeadController extends Controller
     public function index(Request $request): View
     {
         $user = $request->user();
-        $leads = $this->leadService->getRecentLeads(50, $user);
+        $search = $request->input('search');
+
+        if ($search) {
+            $leads = $this->leadService->searchLeads($search, $user);
+        } else {
+            $leads = $this->leadService->getRecentLeads(50, $user);
+        }
 
         return view('leads.index', [
             'leads' => $leads,
             'users' => User::where('is_active', true)->get(),
+            'search' => $search,
         ]);
     }
 
@@ -55,12 +62,34 @@ class LeadController extends Controller
     {
         $data = $request->validated();
 
+        // Check for duplicate phone number
+        $existingLead = Lead::where('phone_number', $data['phone_number'])
+            ->whereNull('deleted_at')
+            ->first();
+
+        if ($existingLead) {
+            return redirect()
+                ->route('leads.show', $existingLead)
+                ->with('error', 'This phone number already exists! You can update the existing lead below.');
+        }
+
         // If no assigned_to provided and user is sales person, assign to self
         if (! isset($data['assigned_to']) && $request->user()->isSalesPerson()) {
             $data['assigned_to'] = $request->user()->id;
         }
 
-        $lead = $this->leadService->createLead($data);
+        try {
+            $lead = $this->leadService->createLead($data);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle unique constraint violation on lead_number
+            if ($e->errorInfo[1] == 1062) { // MySQL duplicate entry error code
+                // Retry with new lead number
+                $data['lead_number'] = $this->leadService->generateLeadNumber($data['lead_date'] ?? now()->format('Y-m-d'));
+                $lead = $this->leadService->createLead($data);
+            } else {
+                throw $e;
+            }
+        }
 
         return redirect()
             ->route('leads.show', $lead)
@@ -106,7 +135,7 @@ class LeadController extends Controller
             return response()->json([
                 'success' => true,
                 'lead' => $lead->fresh(),
-                'message' => 'Lead updated successfully!'
+                'message' => 'Lead updated successfully!',
             ]);
         }
 

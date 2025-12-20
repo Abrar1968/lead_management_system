@@ -72,7 +72,7 @@
                                     <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Customer
                                         Name</dt>
                                     <dd class="mt-2 text-base font-semibold text-gray-900">
-                                        {{ $lead->customer_name ?? 'Not provided' }}</dd>
+                                        {{ $lead->client_name ?? 'Not provided' }}</dd>
                                 </div>
                                 <div class="group">
                                     <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Phone
@@ -230,7 +230,7 @@
                                                                 'id' => $contact->id,
                                                                 'response_status' => $contact->response_status,
                                                                 'notes' => $contact->notes,
-                                                                'client_name' => $lead->customer_name,
+                                                                'client_name' => $lead->client_name,
                                                             ]) }})"
                                                             class="text-[10px] font-bold uppercase tracking-wider text-indigo-600 hover:text-indigo-800 transition-colors">
                                                             Edit
@@ -506,7 +506,7 @@
                                 notes: this.contact.notes
                             })
                         });
-            
+
                         if (response.ok) {
                             window.location.reload();
                         }

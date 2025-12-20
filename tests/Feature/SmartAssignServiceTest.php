@@ -2,13 +2,12 @@
 
 use App\Models\Conversion;
 use App\Models\Lead;
-use App\Models\LeadAssignmentSetting;
 use App\Models\SalesPerformance;
 use App\Models\User;
 use App\Services\SmartAssignService;
 
 beforeEach(function () {
-    $this->service = new SmartAssignService();
+    $this->service = new SmartAssignService;
 });
 
 it('returns null when no sales users exist', function () {

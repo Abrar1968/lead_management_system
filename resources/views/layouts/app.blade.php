@@ -477,15 +477,16 @@
                     <!-- Right side: Search & Profile -->
                     <div class="flex items-center gap-3">
                         <!-- Global Search -->
-                        <div class="hidden md:block relative group">
-                            <input type="text" placeholder="Search leads..."
+                        <form action="{{ route('leads.index') }}" method="GET" class="hidden md:block relative group">
+                            <input type="text" name="search" placeholder="Search by phone, name, or lead #..." value="{{ request('search') }}"
                                 class="w-64 pl-11 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-gray-50 group-hover:bg-white transition-all duration-200 placeholder:text-gray-400">
-                            <svg class="w-5 h-5 text-gray-400 absolute left-4 top-3 group-focus-within:text-blue-500 transition-colors"
-                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
+                            <button type="submit" class="absolute left-4 top-3 text-gray-400 hover:text-blue-500 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </button>
+                        </form>
 
                         <!-- Profile Dropdown -->
                         <div class="relative" x-data="{ open: false }">
@@ -699,6 +700,9 @@
                                             'bg-green-100 text-green-700')">
                                         <span x-text="meeting.diff_minutes + ' min'"></span>
                                     </span>
+                                    <p x-show="meeting.notification_type" class="text-xs font-bold mt-1"
+                                        :class="meeting.diff_minutes <= 7 ? 'text-red-600' : 'text-amber-600'"
+                                        x-text="meeting.notification_type"></p>
                                 </div>
                             </div>
                         </div>
@@ -727,18 +731,27 @@
                 meetings: [],
                 isLoginAlert: false,
                 notifiedMeetings: [],
+                notifiedOneHour: [],
+                notifiedFiveMin: [],
                 pollingInterval: null,
+                audioElement: null,
 
                 init() {
                     // Load notified meetings from localStorage
                     const stored = localStorage.getItem('notifiedMeetings_' + new Date().toDateString());
                     this.notifiedMeetings = stored ? JSON.parse(stored) : [];
 
+                    const oneHourStored = localStorage.getItem('notifiedOneHour_' + new Date().toDateString());
+                    this.notifiedOneHour = oneHourStored ? JSON.parse(oneHourStored) : [];
+
+                    const fiveMinStored = localStorage.getItem('notifiedFiveMin_' + new Date().toDateString());
+                    this.notifiedFiveMin = fiveMinStored ? JSON.parse(fiveMinStored) : [];
+
                     // Check on page load (login check)
                     this.checkMeetings(true);
 
-                    // Start polling every 5 minutes
-                    this.pollingInterval = setInterval(() => this.checkMeetings(false), 300000);
+                    // Start polling every 1 minute for more precise notifications
+                    this.pollingInterval = setInterval(() => this.checkMeetings(false), 60000);
                 },
 
                 async checkMeetings(isLoginCheck) {
@@ -752,14 +765,35 @@
                         const data = await response.json();
 
                         if (data.alert && data.meetings.length > 0) {
-                            // Filter out already notified meetings (except for login alert)
-                            let newMeetings = data.meetings;
-                            if (!data.login_alert) {
-                                newMeetings = data.meetings.filter(m => !this.notifiedMeetings.includes(m.id));
+                            let newMeetings = [];
+
+                            if (data.login_alert) {
+                                // Show all meetings on login
+                                newMeetings = data.meetings;
+                            } else {
+                                // Check for 1-hour and 5-minute notifications
+                                data.meetings.forEach(m => {
+                                    const diffMin = m.diff_minutes;
+                                    const meetingId = m.id;
+
+                                    // 1 hour notification (55-65 minutes before)
+                                    if (diffMin >= 55 && diffMin <= 65 && !this.notifiedOneHour.includes(meetingId)) {
+                                        newMeetings.push({...m, notification_type: '1 Hour Warning'});
+                                        this.notifiedOneHour.push(meetingId);
+                                        localStorage.setItem('notifiedOneHour_' + new Date().toDateString(), JSON.stringify(this.notifiedOneHour));
+                                    }
+
+                                    // 5 minute notification (3-7 minutes before)
+                                    if (diffMin >= 3 && diffMin <= 7 && !this.notifiedFiveMin.includes(meetingId)) {
+                                        newMeetings.push({...m, notification_type: '5 Minute Warning!'});
+                                        this.notifiedFiveMin.push(meetingId);
+                                        localStorage.setItem('notifiedFiveMin_' + new Date().toDateString(), JSON.stringify(this.notifiedFiveMin));
+                                    }
+                                });
                             }
 
-                            if (newMeetings.length > 0 || data.login_alert) {
-                                this.meetings = data.login_alert ? data.meetings : newMeetings;
+                            if (newMeetings.length > 0) {
+                                this.meetings = newMeetings;
                                 this.isLoginAlert = data.login_alert;
                                 this.showModal = true;
                                 this.playSound();
@@ -781,9 +815,10 @@
 
                 playSound() {
                     try {
-                        const audio = new Audio('/sounds/notification.mp3');
-                        audio.volume = 0.5;
-                        audio.play().catch(e => console.log('Audio play prevented:', e));
+                        this.audioElement = new Audio('/sounds/notification.mp3');
+                        this.audioElement.volume = 0.5;
+                        this.audioElement.loop = true;
+                        this.audioElement.play().catch(e => console.log('Audio play prevented:', e));
                     } catch (e) {
                         console.log('Audio not available');
                     }
@@ -791,6 +826,12 @@
 
                 dismissModal() {
                     this.showModal = false;
+                    // Stop sound when dismissed
+                    if (this.audioElement) {
+                        this.audioElement.pause();
+                        this.audioElement.currentTime = 0;
+                        this.audioElement = null;
+                    }
                 }
             }
         }

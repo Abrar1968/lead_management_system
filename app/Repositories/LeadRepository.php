@@ -210,6 +210,28 @@ class LeadRepository
     }
 
     /**
+     * Search leads by phone number, client name, or lead number
+     */
+    public function search(string $search, ?int $userId = null): Collection
+    {
+        $query = Lead::query()
+            ->with(['assignedTo', 'contacts', 'followUps', 'meetings', 'conversion'])
+            ->where(function ($q) use ($search) {
+                $q->where('phone_number', 'LIKE', "%{$search}%")
+                    ->orWhere('client_name', 'LIKE', "%{$search}%")
+                    ->orWhere('lead_number', 'LIKE', "%{$search}%");
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(100);
+
+        if ($userId) {
+            $query->where('assigned_to', $userId);
+        }
+
+        return $query->get();
+    }
+
+    /**
      * Create a new lead
      */
     public function create(array $data): Lead

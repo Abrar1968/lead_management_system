@@ -30,7 +30,7 @@ test('it matches lead with status equals condition', function () {
 
     FollowUpRuleCondition::create([
         'rule_id' => $rule->id,
-        'field' => 'status',
+        'field' => 'lead.status',
         'operator' => 'equals',
         'value' => 'New',
     ]);
@@ -63,7 +63,7 @@ test('it matches lead with priority condition', function () {
 
     FollowUpRuleCondition::create([
         'rule_id' => $rule->id,
-        'field' => 'priority',
+        'field' => 'lead.priority',
         'operator' => 'equals',
         'value' => 'High',
     ]);
@@ -98,14 +98,14 @@ test('it applies AND logic correctly', function () {
 
     FollowUpRuleCondition::create([
         'rule_id' => $rule->id,
-        'field' => 'status',
+        'field' => 'lead.status',
         'operator' => 'equals',
         'value' => 'New',
     ]);
 
     FollowUpRuleCondition::create([
         'rule_id' => $rule->id,
-        'field' => 'priority',
+        'field' => 'lead.priority',
         'operator' => 'equals',
         'value' => 'High',
     ]);
@@ -150,14 +150,14 @@ test('it applies OR logic correctly', function () {
 
     FollowUpRuleCondition::create([
         'rule_id' => $rule->id,
-        'field' => 'status',
+        'field' => 'lead.status',
         'operator' => 'equals',
         'value' => 'New',
     ]);
 
     FollowUpRuleCondition::create([
         'rule_id' => $rule->id,
-        'field' => 'priority',
+        'field' => 'lead.priority',
         'operator' => 'equals',
         'value' => 'High',
     ]);
@@ -203,7 +203,7 @@ test('it evaluates greater_than operator', function () {
 
     FollowUpRuleCondition::create([
         'rule_id' => $rule->id,
-        'field' => 'total_calls',
+        'field' => 'contact.total_calls',
         'operator' => 'greater_than',
         'value' => 2,
     ]);
@@ -244,7 +244,7 @@ test('it ignores inactive rules', function () {
 
     FollowUpRuleCondition::create([
         'rule_id' => $activeRule->id,
-        'field' => 'status',
+        'field' => 'lead.status',
         'operator' => 'equals',
         'value' => 'New',
     ]);
@@ -258,7 +258,7 @@ test('it ignores inactive rules', function () {
 
     FollowUpRuleCondition::create([
         'rule_id' => $inactiveRule->id,
-        'field' => 'priority',
+        'field' => 'lead.priority',
         'operator' => 'equals',
         'value' => 'High',
     ]);
@@ -288,7 +288,7 @@ test('it includes global rules for all users', function () {
 
     FollowUpRuleCondition::create([
         'rule_id' => $globalRule->id,
-        'field' => 'status',
+        'field' => 'lead.status',
         'operator' => 'equals',
         'value' => 'New',
     ]);
@@ -315,7 +315,7 @@ test('preview rule matches returns correct leads', function () {
 
     FollowUpRuleCondition::create([
         'rule_id' => $rule->id,
-        'field' => 'source',
+        'field' => 'lead.source',
         'operator' => 'equals',
         'value' => 'WhatsApp',
     ]);
@@ -351,7 +351,7 @@ test('it sorts results by rule priority', function () {
 
     FollowUpRuleCondition::create([
         'rule_id' => $highPriorityRule->id,
-        'field' => 'priority',
+        'field' => 'lead.priority',
         'operator' => 'equals',
         'value' => 'High',
     ]);
@@ -366,7 +366,7 @@ test('it sorts results by rule priority', function () {
 
     FollowUpRuleCondition::create([
         'rule_id' => $lowPriorityRule->id,
-        'field' => 'priority',
+        'field' => 'lead.priority',
         'operator' => 'equals',
         'value' => 'Low',
     ]);

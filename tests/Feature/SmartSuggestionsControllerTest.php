@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Lead;
 use App\Models\Service;
 use App\Models\User;
 
