@@ -79,6 +79,70 @@ it('client show page displays dynamic fields', function () {
         ->assertSee('Test Field');
 });
 
+it('can preview document with inline disposition', function () {
+    // Create a document field definition
+    $field = FieldDefinition::create([
+        'model_type' => 'client',
+        'name' => 'contract',
+        'label' => 'Contract Document',
+        'type' => 'document',
+        'required' => false,
+        'is_active' => true,
+    ]);
+
+    // Create lead, conversion, and client
+    $lead = Lead::factory()->create(['assigned_to' => $this->salesPerson->id]);
+    $conversion = Conversion::create([
+        'lead_id' => $lead->id,
+        'converted_by' => $this->salesPerson->id,
+        'conversion_date' => now(),
+        'deal_value' => 5000,
+        'commission_rate_used' => 10,
+        'commission_type_used' => 'percentage',
+        'commission_amount' => 500,
+        'package_plan' => 'Standard',
+    ]);
+    $client = ClientDetail::create(['conversion_id' => $conversion->id]);
+
+    // Create a test file
+    $testContent = 'Test document content';
+    $testPath = 'clients/documents/test_contract.txt';
+    \Illuminate\Support\Facades\Storage::disk('public')->put($testPath, $testContent);
+
+    // Set field value
+    $client->setFieldValue($field->id, $testPath);
+
+    // Test preview route
+    $response = $this->actingAs($this->salesPerson)
+        ->get(route('clients.preview-document', ['client' => $client, 'fieldId' => $field->id]));
+
+    $response->assertOk();
+    $response->assertHeader('Content-Disposition', fn ($value) => str_contains($value, 'inline'));
+    expect($response->getContent())->toBe($testContent);
+
+    // Cleanup
+    \Illuminate\Support\Facades\Storage::disk('public')->delete($testPath);
+});
+
+it('returns 404 when document field does not exist', function () {
+    $lead = Lead::factory()->create(['assigned_to' => $this->salesPerson->id]);
+    $conversion = Conversion::create([
+        'lead_id' => $lead->id,
+        'converted_by' => $this->salesPerson->id,
+        'conversion_date' => now(),
+        'deal_value' => 5000,
+        'commission_rate_used' => 10,
+        'commission_type_used' => 'percentage',
+        'commission_amount' => 500,
+        'package_plan' => 'Standard',
+    ]);
+    $client = ClientDetail::create(['conversion_id' => $conversion->id]);
+
+    $this->actingAs($this->salesPerson)
+        ->get(route('clients.preview-document', ['client' => $client, 'fieldId' => 999]))
+        ->assertNotFound();
+});
+
 it('field definition requires unique name per model type', function () {
     FieldDefinition::create([
         'model_type' => 'client',

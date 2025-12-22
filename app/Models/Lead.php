@@ -8,11 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Lead extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * Centralized Lead Status definitions.
@@ -59,6 +58,7 @@ class Lead extends Model
         'priority',
         'status',
         'assigned_to',
+        'initial_remarks',
     ];
 
     protected function casts(): array

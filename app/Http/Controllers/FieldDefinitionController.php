@@ -42,7 +42,7 @@ class FieldDefinitionController extends Controller
             'model_type' => 'required|in:client,demo',
             'name' => 'required|string|max:100|regex:/^[a-z_]+$/|unique:field_definitions,name,NULL,id,model_type,'.$request->model_type,
             'label' => 'required|string|max:255',
-            'type' => 'required|in:text,image,link',
+            'type' => 'required|in:text,image,link,document',
             'required' => 'boolean',
             'order' => 'nullable|integer|min:0',
         ]);
@@ -72,7 +72,7 @@ class FieldDefinitionController extends Controller
     {
         $validated = $request->validate([
             'label' => 'required|string|max:255',
-            'type' => 'required|in:text,image,link',
+            'type' => 'required|in:text,image,link,document',
             'required' => 'boolean',
             'order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',

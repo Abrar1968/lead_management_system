@@ -9,8 +9,10 @@
             </div>
             <a href="{{ route('leads.daily', ['date' => $date]) }}"
                 class="group inline-flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 transition-all duration-300 hover:bg-gray-200 hover:-translate-x-1">
-                <svg class="h-5 w-5 transition-transform duration-300 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                <svg class="h-5 w-5 transition-transform duration-300 group-hover:-translate-x-1" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 Back to Daily View
             </a>
@@ -24,7 +26,8 @@
                     <div class="flex items-center gap-3">
                         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
                             <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                             </svg>
                         </div>
                         <div>
@@ -35,17 +38,17 @@
                 </div>
 
                 <form action="{{ route('leads.store') }}" method="POST" class="p-6" x-data="leadForm()"
-                    @submit.prevent="submitForm">
+                    @submit.prevent="submitForm" enctype="multipart/form-data">
                     @csrf
 
                     {{-- Repeat Lead Warning --}}
-                    <div x-show="repeatLeadWarning" x-cloak
-                         x-transition:enter="transition ease-out duration-300"
-                         x-transition:enter-start="opacity-0 -translate-y-4"
-                         x-transition:enter-end="opacity-100 translate-y-0"
+                    <div x-show="repeatLeadWarning" x-cloak x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 -translate-y-4"
+                        x-transition:enter-end="opacity-100 translate-y-0"
                         class="mb-6 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 p-5 border border-amber-200 shadow-lg shadow-amber-500/10">
                         <div class="flex items-start gap-4">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/30">
+                            <div
+                                class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/30">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -58,11 +61,14 @@
                                     <ul class="mt-2 space-y-1">
                                         <template x-for="lead in previousLeads" :key="lead.id">
                                             <li class="flex items-center gap-2 rounded-lg bg-white/50 px-3 py-2">
-                                                <span class="font-semibold text-amber-900" x-text="lead.lead_number"></span>
+                                                <span class="font-semibold text-amber-900"
+                                                    x-text="lead.lead_number"></span>
                                                 <span class="text-amber-700">-</span>
                                                 <span x-text="lead.client_name || 'Unknown'"></span>
-                                                <span class="text-amber-600">(<span x-text="lead.lead_date"></span>)</span>
-                                                <span class="rounded-lg bg-amber-200 px-2 py-0.5 text-xs font-semibold" x-text="lead.status"></span>
+                                                <span class="text-amber-600">(<span
+                                                        x-text="lead.lead_date"></span>)</span>
+                                                <span class="rounded-lg bg-amber-200 px-2 py-0.5 text-xs font-semibold"
+                                                    x-text="lead.status"></span>
                                             </li>
                                         </template>
                                     </ul>
@@ -94,11 +100,13 @@
                             <div class="relative">
                                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                     </svg>
                                 </span>
                                 <input type="tel" name="phone_number" id="phone_number" x-model="phoneNumber"
-                                    @blur="checkRepeatLead()" value="{{ old('phone_number') }}" placeholder="01XXXXXXXXX"
+                                    @blur="checkRepeatLead()" value="{{ old('phone_number') }}"
+                                    placeholder="01XXXXXXXXX"
                                     class="w-full rounded-xl border-gray-200 bg-gray-50 pl-12 pr-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
                                     required>
                             </div>
@@ -115,11 +123,12 @@
                             <div class="relative">
                                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
                                 </span>
-                                <input type="text" name="client_name" id="client_name" value="{{ old('client_name') }}"
-                                    placeholder="John Doe"
+                                <input type="text" name="client_name" id="client_name"
+                                    value="{{ old('client_name') }}" placeholder="John Doe"
                                     class="w-full rounded-xl border-gray-200 bg-gray-50 pl-12 pr-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20">
                             </div>
                             @error('client_name')
@@ -135,7 +144,8 @@
                             <div class="relative">
                                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                 </span>
                                 <input type="email" name="email" id="email" value="{{ old('email') }}"
@@ -156,9 +166,12 @@
                                 class="w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
                                 required>
                                 <option value="">Select Source</option>
-                                <option value="WhatsApp" {{ old('source') === 'WhatsApp' ? 'selected' : '' }}>WhatsApp</option>
-                                <option value="Messenger" {{ old('source') === 'Messenger' ? 'selected' : '' }}>Messenger</option>
-                                <option value="Website" {{ old('source') === 'Website' ? 'selected' : '' }}>Website</option>
+                                <option value="WhatsApp" {{ old('source') === 'WhatsApp' ? 'selected' : '' }}>WhatsApp
+                                </option>
+                                <option value="Messenger" {{ old('source') === 'Messenger' ? 'selected' : '' }}>
+                                    Messenger</option>
+                                <option value="Website" {{ old('source') === 'Website' ? 'selected' : '' }}>Website
+                                </option>
                             </select>
                             @error('source')
                                 <p class="text-sm font-medium text-red-600">{{ $message }}</p>
@@ -174,8 +187,9 @@
                                 class="w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
                                 required>
                                 <option value="">Select Service</option>
-                                @foreach($services as $service)
-                                    <option value="{{ $service->id }}" {{ old('service_id') == $service->id ? 'selected' : '' }}>
+                                @foreach ($services as $service)
+                                    <option value="{{ $service->id }}"
+                                        {{ old('service_id') == $service->id ? 'selected' : '' }}>
                                         {{ $service->name }}
                                     </option>
                                 @endforeach
@@ -193,8 +207,10 @@
                             <select name="priority" id="priority"
                                 class="w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20">
                                 <option value="Low" {{ old('priority') === 'Low' ? 'selected' : '' }}>Low</option>
-                                <option value="Medium" {{ old('priority', 'Medium') === 'Medium' ? 'selected' : '' }}>Medium</option>
-                                <option value="High" {{ old('priority') === 'High' ? 'selected' : '' }}>High</option>
+                                <option value="Medium" {{ old('priority', 'Medium') === 'Medium' ? 'selected' : '' }}>
+                                    Medium</option>
+                                <option value="High" {{ old('priority') === 'High' ? 'selected' : '' }}>High
+                                </option>
                             </select>
                             @error('priority')
                                 <p class="text-sm font-medium text-red-600">{{ $message }}</p>
@@ -211,7 +227,8 @@
                                     class="w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20">
                                     <option value="">Unassigned</option>
                                     @foreach ($salesPersons as $person)
-                                        <option value="{{ $person->id }}" {{ old('assigned_to') == $person->id ? 'selected' : '' }}>
+                                        <option value="{{ $person->id }}"
+                                            {{ old('assigned_to') == $person->id ? 'selected' : '' }}>
                                             {{ $person->name }} ({{ $person->role }})
                                         </option>
                                     @endforeach
@@ -244,8 +261,10 @@
                         </a>
                         <button type="submit"
                             class="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5">
-                            <svg class="h-5 w-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            <svg class="h-5 w-5 transition-transform duration-300 group-hover:scale-110"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7" />
                             </svg>
                             Create Lead
                         </button>

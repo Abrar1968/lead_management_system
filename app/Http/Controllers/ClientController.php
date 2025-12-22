@@ -6,7 +6,9 @@ use App\Models\ClientDetail;
 use App\Models\FieldDefinition;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ClientController extends Controller
 {
@@ -110,21 +112,16 @@ class ClientController extends Controller
             $value = null;
 
             if ($field->type === 'image' && $request->hasFile($fieldKey)) {
-                // Handle image upload using GD
                 $file = $request->file($fieldKey);
-                $path = $this->processImageUpload($file, $client->id, $field->name);
-                $value = $path;
+                $value = $this->processImageUpload($file, $client->id, $field->name);
             } elseif ($field->type === 'document' && $request->hasFile($fieldKey)) {
-                // Handle document upload
                 $file = $request->file($fieldKey);
                 $extension = $file->getClientOriginalExtension();
                 $filename = "client_{$client->id}_{$field->name}_".time().'.'.$extension;
-                $path = $file->storeAs('clients/documents', $filename, 'public');
-                $value = $path;
+                $value = $file->storeAs('clients/documents', $filename, 'public');
             } elseif ($field->type !== 'image' && $field->type !== 'document') {
                 $value = $validated[$fieldKey] ?? null;
             } else {
-                // Keep existing image if no new upload
                 continue;
             }
 
@@ -163,32 +160,33 @@ class ClientController extends Controller
     }
 
     /**
-     * Process image upload using GD extension (no facade).
+     * Process image upload using GD extension with Storage facade.
      */
     private function processImageUpload($file, int $clientId, string $fieldName): string
     {
         $extension = $file->getClientOriginalExtension();
         $filename = "client_{$clientId}_{$fieldName}_".time().'.'.$extension;
-        $directory = storage_path('app/public/clients');
 
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
+        // Ensure directory exists using Storage facade
+        $storagePath = 'clients';
+        if (! Storage::disk('public')->exists($storagePath)) {
+            Storage::disk('public')->makeDirectory($storagePath);
         }
 
-        $targetPath = $directory.'/'.$filename;
+        $targetPath = Storage::disk('public')->path($storagePath.'/'.$filename);
 
         // Load the image based on type
         $sourceImage = match (strtolower($extension)) {
-            'jpg', 'jpeg' => imagecreatefromjpeg($file->getPathname()),
-            'png' => imagecreatefrompng($file->getPathname()),
-            'gif' => imagecreatefromgif($file->getPathname()),
-            'webp' => imagecreatefromwebp($file->getPathname()),
+            'jpg', 'jpeg' => \imagecreatefromjpeg($file->getPathname()),
+            'png' => \imagecreatefrompng($file->getPathname()),
+            'gif' => \imagecreatefromgif($file->getPathname()),
+            'webp' => \imagecreatefromwebp($file->getPathname()),
             default => throw new \Exception('Unsupported image format'),
         };
 
         // Resize if larger than 800px
-        $width = imagesx($sourceImage);
-        $height = imagesy($sourceImage);
+        $width = \imagesx($sourceImage);
+        $height = \imagesy($sourceImage);
         $maxDimension = 800;
 
         if ($width > $maxDimension || $height > $maxDimension) {
@@ -196,28 +194,28 @@ class ClientController extends Controller
             $newWidth = (int) ($width * $ratio);
             $newHeight = (int) ($height * $ratio);
 
-            $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+            $resizedImage = \imagecreatetruecolor($newWidth, $newHeight);
 
             // Preserve transparency for PNG/GIF
             if (in_array(strtolower($extension), ['png', 'gif'])) {
-                imagealphablending($resizedImage, false);
-                imagesavealpha($resizedImage, true);
+                \imagealphablending($resizedImage, false);
+                \imagesavealpha($resizedImage, true);
             }
 
-            imagecopyresampled($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-            imagedestroy($sourceImage);
+            \imagecopyresampled($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            \imagedestroy($sourceImage);
             $sourceImage = $resizedImage;
         }
 
         // Save the image
         match (strtolower($extension)) {
-            'jpg', 'jpeg' => imagejpeg($sourceImage, $targetPath, 85),
-            'png' => imagepng($sourceImage, $targetPath, 8),
-            'gif' => imagegif($sourceImage, $targetPath),
-            'webp' => imagewebp($sourceImage, $targetPath, 85),
+            'jpg', 'jpeg' => \imagejpeg($sourceImage, $targetPath, 85),
+            'png' => \imagepng($sourceImage, $targetPath, 8),
+            'gif' => \imagegif($sourceImage, $targetPath),
+            'webp' => \imagewebp($sourceImage, $targetPath, 85),
         };
 
-        imagedestroy($sourceImage);
+        \imagedestroy($sourceImage);
 
         return 'clients/'.$filename;
     }
@@ -231,14 +229,49 @@ class ClientController extends Controller
         $fieldValue = $client->fieldValues()->where('field_definition_id', $fieldId)->first();
 
         if ($fieldValue && $fieldValue->value) {
-            // Delete the file
-            $path = storage_path('app/public/'.$fieldValue->value);
-            if (file_exists($path)) {
-                unlink($path);
+            // Delete the file using Storage facade
+            if (Storage::disk('public')->exists($fieldValue->value)) {
+                Storage::disk('public')->delete($fieldValue->value);
             }
             $fieldValue->delete();
         }
 
-        return back()->with('success', 'Image removed successfully.');
+        return back()->with('success', 'File removed successfully.');
+    }
+
+    /**
+     * Preview a document (serves with inline disposition for browser preview).
+     */
+    public function previewDocument(ClientDetail $client, int $fieldId): StreamedResponse
+    {
+        $fieldValue = $client->fieldValues()->where('field_definition_id', $fieldId)->first();
+
+        if (! $fieldValue || ! $fieldValue->value) {
+            abort(404, 'Document not found');
+        }
+
+        $filePath = $fieldValue->value;
+
+        if (! Storage::disk('public')->exists($filePath)) {
+            abort(404, 'Document file not found');
+        }
+
+        $fullPath = Storage::disk('public')->path($filePath);
+        $mimeType = Storage::disk('public')->mimeType($filePath);
+        $filename = basename($filePath);
+
+        return response()->stream(
+            function () use ($fullPath) {
+                $stream = fopen($fullPath, 'r');
+                fpassthru($stream);
+                fclose($stream);
+            },
+            200,
+            [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="'.$filename.'"',
+                'Content-Length' => filesize($fullPath),
+            ]
+        );
     }
 }

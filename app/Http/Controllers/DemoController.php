@@ -7,7 +7,9 @@ use App\Models\FieldDefinition;
 use App\Models\Lead;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DemoController extends Controller
 {
@@ -192,6 +194,8 @@ class DemoController extends Controller
             $fieldKey = 'dynamic_'.$field->name;
             if ($field->type === 'image') {
                 $rules[$fieldKey] = ($field->required ? 'required|' : 'nullable|').'image|max:2048';
+            } elseif ($field->type === 'document') {
+                $rules[$fieldKey] = ($field->required ? 'required|' : 'nullable|').'file|mimes:pdf,doc,docx,xls,xlsx,txt|max:5120';
             } elseif ($field->type === 'link') {
                 $rules[$fieldKey] = ($field->required ? 'required|' : 'nullable|').'url|max:500';
             } else {
@@ -262,13 +266,14 @@ class DemoController extends Controller
     {
         $extension = $file->getClientOriginalExtension();
         $filename = "demo_{$demoId}_{$fieldName}_".time().'.'.$extension;
-        $directory = storage_path('app/public/demos');
 
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
+        // Ensure directory exists using Storage facade
+        $storagePath = 'demos';
+        if (! Storage::disk('public')->exists($storagePath)) {
+            Storage::disk('public')->makeDirectory($storagePath);
         }
 
-        $targetPath = $directory.'/'.$filename;
+        $targetPath = Storage::disk('public')->path($storagePath.'/'.$filename);
 
         // Load the image based on type
         $sourceImage = match (strtolower($extension)) {
@@ -322,13 +327,49 @@ class DemoController extends Controller
         $fieldValue = $demo->fieldValues()->where('field_definition_id', $fieldId)->first();
 
         if ($fieldValue && $fieldValue->value) {
-            $path = storage_path('app/public/'.$fieldValue->value);
-            if (file_exists($path)) {
-                unlink($path);
+            // Delete the file using Storage facade
+            if (Storage::disk('public')->exists($fieldValue->value)) {
+                Storage::disk('public')->delete($fieldValue->value);
             }
             $fieldValue->delete();
         }
 
         return back()->with('success', 'File removed successfully.');
+    }
+
+    /**
+     * Preview a document (serves with inline disposition for browser preview).
+     */
+    public function previewDocument(Demo $demo, int $fieldId): StreamedResponse
+    {
+        $fieldValue = $demo->fieldValues()->where('field_definition_id', $fieldId)->first();
+
+        if (! $fieldValue || ! $fieldValue->value) {
+            abort(404, 'Document not found');
+        }
+
+        $filePath = $fieldValue->value;
+
+        if (! Storage::disk('public')->exists($filePath)) {
+            abort(404, 'Document file not found');
+        }
+
+        $fullPath = Storage::disk('public')->path($filePath);
+        $mimeType = Storage::disk('public')->mimeType($filePath);
+        $filename = basename($filePath);
+
+        return response()->stream(
+            function () use ($fullPath) {
+                $stream = fopen($fullPath, 'r');
+                fpassthru($stream);
+                fclose($stream);
+            },
+            200,
+            [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="'.$filename.'"',
+                'Content-Length' => filesize($fullPath),
+            ]
+        );
     }
 }

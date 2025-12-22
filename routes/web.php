@@ -82,10 +82,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/clients/{client}/edit', [ClientController::class, 'edit'])->name('clients.edit');
     Route::put('/clients/{client}', [ClientController::class, 'update'])->name('clients.update');
     Route::post('/clients/{client}/remove-image', [ClientController::class, 'removeImage'])->name('clients.remove-image');
+    Route::get('/clients/{client}/preview-document/{fieldId}', [ClientController::class, 'previewDocument'])->name('clients.preview-document');
 
     // Demos
     Route::resource('demos', DemoController::class);
     Route::post('/demos/{demo}/remove-image', [DemoController::class, 'removeImage'])->name('demos.remove-image');
+    Route::get('/demos/{demo}/preview-document/{fieldId}', [DemoController::class, 'previewDocument'])->name('demos.preview-document');
 
     // Follow-up Rules (Smart Suggestions - Auto Follow-up)
     Route::resource('follow-up-rules', FollowUpRuleController::class);

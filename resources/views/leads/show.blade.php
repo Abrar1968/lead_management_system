@@ -506,7 +506,7 @@
                                 notes: this.contact.notes
                             })
                         });
-
+            
                         if (response.ok) {
                             window.location.reload();
                         }

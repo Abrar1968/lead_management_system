@@ -63,9 +63,7 @@ class LeadController extends Controller
         $data = $request->validated();
 
         // Check for duplicate phone number
-        $existingLead = Lead::where('phone_number', $data['phone_number'])
-            ->whereNull('deleted_at')
-            ->first();
+        $existingLead = Lead::where('phone_number', $data['phone_number'])->first();
 
         if ($existingLead) {
             return redirect()

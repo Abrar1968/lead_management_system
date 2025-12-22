@@ -169,6 +169,21 @@
                                                 @else
                                                     <p class="mt-1 text-gray-400 italic">No image uploaded</p>
                                                 @endif
+                                            @elseif($field->type === 'document')
+                                                @if ($value)
+                                                    <div class="mt-2">
+                                                        <a href="{{ route('demos.preview-document', ['demo' => $demo, 'fieldId' => $field->id]) }}" target="_blank"
+                                                            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-all border border-blue-100">
+                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                            </svg>
+                                                            View Document
+                                                        </a>
+                                                    </div>
+                                                @else
+                                                    <p class="mt-1 text-gray-400 italic">No document uploaded</p>
+                                                @endif
                                             @elseif($field->type === 'link')
                                                 @if ($value)
                                                     <p class="mt-1">
