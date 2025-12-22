@@ -160,19 +160,20 @@ class ClientController extends Controller
     }
 
     /**
-     * Process image upload using GD extension (no facade).
+     * Process image upload using GD extension with Storage facade.
      */
     private function processImageUpload($file, int $clientId, string $fieldName): string
     {
         $extension = $file->getClientOriginalExtension();
         $filename = "client_{$clientId}_{$fieldName}_".time().'.'.$extension;
-        $directory = storage_path('app/public/clients');
 
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
+        // Ensure directory exists using Storage facade
+        $storagePath = 'clients';
+        if (! Storage::disk('public')->exists($storagePath)) {
+            Storage::disk('public')->makeDirectory($storagePath);
         }
 
-        $targetPath = $directory.'/'.$filename;
+        $targetPath = Storage::disk('public')->path($storagePath.'/'.$filename);
 
         // Load the image based on type
         $sourceImage = match (strtolower($extension)) {
@@ -228,10 +229,9 @@ class ClientController extends Controller
         $fieldValue = $client->fieldValues()->where('field_definition_id', $fieldId)->first();
 
         if ($fieldValue && $fieldValue->value) {
-            // Delete the file
-            $path = storage_path('app/public/'.$fieldValue->value);
-            if (file_exists($path)) {
-                unlink($path);
+            // Delete the file using Storage facade
+            if (Storage::disk('public')->exists($fieldValue->value)) {
+                Storage::disk('public')->delete($fieldValue->value);
             }
             $fieldValue->delete();
         }

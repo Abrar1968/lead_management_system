@@ -222,7 +222,6 @@
                                 $pendingFollowUps = \App\Models\FollowUp::where('status', 'Pending')
                                     ->where('follow_up_date', '<=', now()->format('Y-m-d'))
                                     ->whereHas('lead', function ($q) {
-                                        $q->whereNull('deleted_at');
                                         if (!auth()->user()->isAdmin()) {
                                             $q->where('assigned_to', auth()->id());
                                         }
@@ -251,7 +250,6 @@
                                 $todayMeetings = \App\Models\Meeting::where('meeting_date', now()->format('Y-m-d'))
                                     ->where('outcome', 'Pending')
                                     ->whereHas('lead', function ($q) {
-                                        $q->whereNull('deleted_at');
                                         if (!auth()->user()->isAdmin()) {
                                             $q->where('assigned_to', auth()->id());
                                         }
@@ -278,7 +276,6 @@
                             <span class="font-medium">Contacts</span>
                             @php
                                 $todayContacts = \App\Models\LeadContact::whereDate('call_date', now()->format('Y-m-d'))
-                                    ->whereHas('lead', fn($q) => $q->whereNull('deleted_at'))
                                     ->when(
                                         !auth()->user()->isAdmin(),
                                         fn($q) => $q->whereHas(

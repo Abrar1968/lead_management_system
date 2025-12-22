@@ -266,13 +266,14 @@ class DemoController extends Controller
     {
         $extension = $file->getClientOriginalExtension();
         $filename = "demo_{$demoId}_{$fieldName}_".time().'.'.$extension;
-        $directory = storage_path('app/public/demos');
 
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
+        // Ensure directory exists using Storage facade
+        $storagePath = 'demos';
+        if (! Storage::disk('public')->exists($storagePath)) {
+            Storage::disk('public')->makeDirectory($storagePath);
         }
 
-        $targetPath = $directory.'/'.$filename;
+        $targetPath = Storage::disk('public')->path($storagePath.'/'.$filename);
 
         // Load the image based on type
         $sourceImage = match (strtolower($extension)) {
@@ -326,9 +327,9 @@ class DemoController extends Controller
         $fieldValue = $demo->fieldValues()->where('field_definition_id', $fieldId)->first();
 
         if ($fieldValue && $fieldValue->value) {
-            $path = storage_path('app/public/'.$fieldValue->value);
-            if (file_exists($path)) {
-                unlink($path);
+            // Delete the file using Storage facade
+            if (Storage::disk('public')->exists($fieldValue->value)) {
+                Storage::disk('public')->delete($fieldValue->value);
             }
             $fieldValue->delete();
         }
