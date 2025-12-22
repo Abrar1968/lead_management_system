@@ -179,16 +179,16 @@ class ClientController extends Controller
 
         // Load the image based on type
         $sourceImage = match (strtolower($extension)) {
-            'jpg', 'jpeg' => imagecreatefromjpeg($file->getPathname()),
-            'png' => imagecreatefrompng($file->getPathname()),
-            'gif' => imagecreatefromgif($file->getPathname()),
-            'webp' => imagecreatefromwebp($file->getPathname()),
+            'jpg', 'jpeg' => \imagecreatefromjpeg($file->getPathname()),
+            'png' => \imagecreatefrompng($file->getPathname()),
+            'gif' => \imagecreatefromgif($file->getPathname()),
+            'webp' => \imagecreatefromwebp($file->getPathname()),
             default => throw new \Exception('Unsupported image format'),
         };
 
         // Resize if larger than 800px
-        $width = imagesx($sourceImage);
-        $height = imagesy($sourceImage);
+        $width = \imagesx($sourceImage);
+        $height = \imagesy($sourceImage);
         $maxDimension = 800;
 
         if ($width > $maxDimension || $height > $maxDimension) {
@@ -196,28 +196,28 @@ class ClientController extends Controller
             $newWidth = (int) ($width * $ratio);
             $newHeight = (int) ($height * $ratio);
 
-            $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+            $resizedImage = \imagecreatetruecolor($newWidth, $newHeight);
 
             // Preserve transparency for PNG/GIF
             if (in_array(strtolower($extension), ['png', 'gif'])) {
-                imagealphablending($resizedImage, false);
-                imagesavealpha($resizedImage, true);
+                \imagealphablending($resizedImage, false);
+                \imagesavealpha($resizedImage, true);
             }
 
-            imagecopyresampled($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-            imagedestroy($sourceImage);
+            \imagecopyresampled($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            \imagedestroy($sourceImage);
             $sourceImage = $resizedImage;
         }
 
         // Save the image
         match (strtolower($extension)) {
-            'jpg', 'jpeg' => imagejpeg($sourceImage, $targetPath, 85),
-            'png' => imagepng($sourceImage, $targetPath, 8),
-            'gif' => imagegif($sourceImage, $targetPath),
-            'webp' => imagewebp($sourceImage, $targetPath, 85),
+            'jpg', 'jpeg' => \imagejpeg($sourceImage, $targetPath, 85),
+            'png' => \imagepng($sourceImage, $targetPath, 8),
+            'gif' => \imagegif($sourceImage, $targetPath),
+            'webp' => \imagewebp($sourceImage, $targetPath, 85),
         };
 
-        imagedestroy($sourceImage);
+        \imagedestroy($sourceImage);
 
         return 'clients/'.$filename;
     }

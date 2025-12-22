@@ -59,6 +59,7 @@ class Lead extends Model
         'priority',
         'status',
         'assigned_to',
+        'initial_remarks',
     ];
 
     protected function casts(): array

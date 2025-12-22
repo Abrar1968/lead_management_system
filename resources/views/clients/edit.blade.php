@@ -206,4 +206,104 @@
             </form>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Add file upload feedback for all file inputs
+                const imageInputs = document.querySelectorAll('input[type="file"][accept*="image"]');
+                const documentInputs = document.querySelectorAll('input[type="file"][accept*=".pdf"]');
+
+                // Handle image inputs
+                imageInputs.forEach(input => {
+                    input.addEventListener('change', function(e) {
+                        const file = e.target.files[0];
+                        if (file) {
+                            // Create feedback element if it doesn't exist
+                            let feedback = this.nextElementSibling;
+                            while (feedback && !feedback.classList.contains('file-feedback')) {
+                                feedback = feedback.nextElementSibling;
+                            }
+
+                            if (!feedback) {
+                                feedback = document.createElement('div');
+                                feedback.className =
+                                    'file-feedback mt-2 p-3 bg-green-50 border border-green-200 rounded-lg';
+                                this.parentElement.insertBefore(feedback, this.nextElementSibling);
+                            }
+
+                            // Show image preview
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                feedback.innerHTML = `
+                                <div class="flex items-center gap-3">
+                                    <img src="${e.target.result}" class="h-16 w-16 object-cover rounded-lg shadow" alt="Preview">
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-green-700"><svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg> Ready to upload</p>
+                                        <p class="text-xs text-gray-600">${file.name} (${(file.size / 1024).toFixed(1)} KB)</p>
+                                    </div>
+                                </div>
+                            `;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                });
+
+                // Handle document inputs
+                documentInputs.forEach(input => {
+                    input.addEventListener('change', function(e) {
+                        const file = e.target.files[0];
+                        if (file) {
+                            // Create feedback element if it doesn't exist
+                            let feedback = this.nextElementSibling;
+                            while (feedback && !feedback.classList.contains('file-feedback')) {
+                                feedback = feedback.nextElementSibling;
+                            }
+
+                            if (!feedback) {
+                                feedback = document.createElement('div');
+                                feedback.className =
+                                    'file-feedback mt-2 p-3 bg-green-50 border border-green-200 rounded-lg';
+                                this.parentElement.insertBefore(feedback, this.nextElementSibling);
+                            }
+
+                            // Show document info
+                            const fileExt = file.name.split('.').pop().toUpperCase();
+                            feedback.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <div class="h-16 w-16 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-green-700"><svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg> Ready to upload</p>
+                                    <p class="text-xs text-gray-600">${file.name} (${(file.size / 1024).toFixed(1)} KB) • ${fileExt}</p>
+                                </div>
+                            </div>
+                        `;
+                        }
+                    });
+                });
+
+
+                // Add submit animation
+                const form = document.querySelector('form[action*="/clients/"]');
+                if (form) {
+                    const saveButton = Array.from(form.querySelectorAll('button[type="submit"]')).find(btn =>
+                        btn.textContent.includes('Save Changes')
+                    );
+
+                    if (saveButton) {
+                        form.addEventListener('submit', function(e) {
+                            // Show loading state
+                            saveButton.disabled = true;
+                            saveButton.innerHTML =
+                                '\u003csvg class="animate-spin h-5 w-5 inline mr-2" viewBox="0 0 24 24">\u003ccircle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>\u003cpath class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>\u003c/svg> Saving...';
+                        });
+                    }
+                }
+            });
+        </script>
+    @endpush
 </x-app-layout>
