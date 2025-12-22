@@ -201,6 +201,30 @@
                                         <input type="file" id="dynamic_{{ $field->name }}" name="dynamic_{{ $field->name }}"
                                                accept="image/*"
                                                class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                    @elseif($field->type === 'document')
+                                        @if($value)
+                                            <div class="mb-2 flex items-center gap-3">
+                                                <a href="{{ route('demos.preview-document', ['demo' => $demo, 'fieldId' => $field->id]) }}" target="_blank"
+                                                   class="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-all border border-blue-100 text-sm">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                    </svg>
+                                                    View Document
+                                                </a>
+                                                <form action="{{ route('demos.remove-image', $demo) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <input type="hidden" name="field_id" value="{{ $field->id }}">
+                                                    <button type="submit" onclick="return confirm('Remove this document?')"
+                                                            class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                                        Remove
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                        <input type="file" id="dynamic_{{ $field->name }}" name="dynamic_{{ $field->name }}"
+                                               accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
+                                               class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                                     @elseif($field->type === 'link')
                                         <input type="url" id="dynamic_{{ $field->name }}" name="dynamic_{{ $field->name }}"
                                                value="{{ old('dynamic_' . $field->name, $value) }}" {{ $field->required && !$value ? 'required' : '' }}

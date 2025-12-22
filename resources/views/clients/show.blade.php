@@ -205,7 +205,7 @@
                                             </svg>
                                         </a>
                                     @elseif($field->type === 'document' && $value)
-                                        <a href="{{ asset('storage/' . $value) }}" target="_blank"
+                                        <a href="{{ route('clients.preview-document', ['client' => $client, 'fieldId' => $field->id]) }}" target="_blank"
                                             class="flex items-center justify-between gap-4 p-4 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl border border-blue-100 group/item hover:shadow-md transition-all max-w-sm">
                                             <div class="flex items-center gap-3">
                                                 <div

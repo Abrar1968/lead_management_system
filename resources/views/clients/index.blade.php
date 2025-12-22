@@ -116,7 +116,7 @@
                                                         class="h-10 w-10 rounded-xl object-cover border-2 border-white shadow-sm ring-1 ring-gray-100 group-hover/thumb:scale-110 transition-transform">
                                                 </div>
                                             @elseif($field->type === 'document' && $value)
-                                                <a href="{{ asset('storage/' . $value) }}" target="_blank"
+                                                <a href="{{ route('clients.preview-document', ['client' => $client, 'fieldId' => $field->id]) }}" target="_blank"
                                                     class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-all text-xs font-bold border border-blue-100">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">

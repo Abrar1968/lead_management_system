@@ -193,7 +193,7 @@
                                             <div class="space-y-3">
                                                 @if ($currentValue)
                                                     <div class="flex items-center gap-3">
-                                                        <a href="{{ asset('storage/' . $currentValue) }}"
+                                                        <a href="{{ route('clients.preview-document', ['client' => $client, 'fieldId' => $field->id]) }}"
                                                             target="_blank"
                                                             class="flex-1 flex items-center justify-between gap-4 p-3.5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 group/doc hover:shadow-md transition-all">
                                                             <div class="flex items-center gap-3">

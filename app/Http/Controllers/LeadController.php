@@ -91,8 +91,6 @@ class LeadController extends Controller
             }
         }
 
-
-
         return redirect()
             ->route('leads.show', $lead)
             ->with('success', 'Lead created successfully!');
@@ -132,8 +130,6 @@ class LeadController extends Controller
     public function update(UpdateLeadRequest $request, Lead $lead): RedirectResponse|JsonResponse
     {
         $this->leadService->updateLead($lead, $request->validated());
-
-
 
         if ($request->wantsJson()) {
             return response()->json([

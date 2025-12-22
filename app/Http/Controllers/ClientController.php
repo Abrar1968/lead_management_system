@@ -6,7 +6,9 @@ use App\Models\ClientDetail;
 use App\Models\FieldDefinition;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ClientController extends Controller
 {
@@ -235,5 +237,41 @@ class ClientController extends Controller
         }
 
         return back()->with('success', 'File removed successfully.');
+    }
+
+    /**
+     * Preview a document (serves with inline disposition for browser preview).
+     */
+    public function previewDocument(ClientDetail $client, int $fieldId): StreamedResponse
+    {
+        $fieldValue = $client->fieldValues()->where('field_definition_id', $fieldId)->first();
+
+        if (! $fieldValue || ! $fieldValue->value) {
+            abort(404, 'Document not found');
+        }
+
+        $filePath = $fieldValue->value;
+
+        if (! Storage::disk('public')->exists($filePath)) {
+            abort(404, 'Document file not found');
+        }
+
+        $fullPath = Storage::disk('public')->path($filePath);
+        $mimeType = Storage::disk('public')->mimeType($filePath);
+        $filename = basename($filePath);
+
+        return response()->stream(
+            function () use ($fullPath) {
+                $stream = fopen($fullPath, 'r');
+                fpassthru($stream);
+                fclose($stream);
+            },
+            200,
+            [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="'.$filename.'"',
+                'Content-Length' => filesize($fullPath),
+            ]
+        );
     }
 }
