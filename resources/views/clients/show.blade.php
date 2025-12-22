@@ -134,38 +134,110 @@
 
             <!-- Dynamic Fields -->
             @if ($dynamicFields->isNotEmpty())
-                <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-                    <div class="px-6 py-4 bg-gray-50 border-b">
-                        <h3 class="text-lg font-semibold text-gray-900">Additional Information</h3>
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+                    <div
+                        class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 leading-none">Additional Information</h3>
+                            <p class="text-xs text-gray-500 mt-1">Supplementary data and custom attachments</p>
+                        </div>
+                        <div class="h-8 w-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
                     </div>
-                    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        @foreach ($dynamicFields as $field)
-                            @php
-                                $fieldValue = $client->fieldValues->firstWhere('field_definition_id', $field->id);
-                                $value = $fieldValue?->value;
-                            @endphp
-                            <div class="{{ $field->type === 'image' ? 'md:col-span-2' : '' }}">
-                                <p class="text-sm text-gray-500">{{ $field->label }}</p>
-                                @if ($field->type === 'image' && $value)
-                                    <img src="{{ asset('storage/' . $value) }}" alt="{{ $field->label }}"
-                                        class="mt-2 max-w-xs rounded-lg shadow">
-                                @elseif($field->type === 'link' && $value)
-                                    <a href="{{ $value }}" target="_blank"
-                                        class="text-blue-600 hover:text-blue-800 underline">{{ $value }}</a>
-                                @elseif($field->type === 'document' && $value)
-                                    <a href="{{ asset('storage/' . $value) }}" target="_blank"
-                                        class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                        </svg>
-                                        View Document
-                                    </a>
-                                @else
-                                    <p class="text-gray-900 font-medium">{{ $value ?? '-' }}</p>
-                                @endif
-                            </div>
-                        @endforeach
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            @foreach ($dynamicFields as $field)
+                                @php
+                                    $fieldValue = $client->fieldValues->firstWhere('field_definition_id', $field->id);
+                                    $value = $fieldValue?->value;
+                                @endphp
+                                <div class="{{ $field->type === 'image' ? 'md:col-span-2' : '' }} group">
+                                    <div class="flex items-center gap-2 mb-1.5">
+                                        @if ($field->type === 'image')
+                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        @elseif($field->type === 'document')
+                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        @elseif($field->type === 'link')
+                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.826L11.414 7.914a4 4 0 115.656 5.656L15.97 14.7" />
+                                            </svg>
+                                        @else
+                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5" />
+                                            </svg>
+                                        @endif
+                                        <p class="text-sm font-semibold text-gray-500">{{ $field->label }}</p>
+                                    </div>
+
+                                    @if ($field->type === 'image' && $value)
+                                        <div class="inline-block relative group/zoom">
+                                            <img src="{{ asset('storage/' . $value) }}" alt="{{ $field->label }}"
+                                                class="max-w-md w-full rounded-2xl shadow-lg border border-gray-100 transition-transform group-hover/zoom:scale-[1.01]">
+                                            <a href="{{ asset('storage/' . $value) }}" target="_blank"
+                                                class="absolute bottom-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg text-xs font-bold text-gray-900 shadow-xl opacity-0 group-hover/zoom:opacity-100 transition-opacity">
+                                                View Full Size
+                                            </a>
+                                        </div>
+                                    @elseif($field->type === 'link' && $value)
+                                        <a href="{{ $value }}" target="_blank"
+                                            class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 transition-all">
+                                            <span>{{ $value }}</span>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                        </a>
+                                    @elseif($field->type === 'document' && $value)
+                                        <a href="{{ asset('storage/' . $value) }}" target="_blank"
+                                            class="flex items-center justify-between gap-4 p-4 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl border border-blue-100 group/item hover:shadow-md transition-all max-w-sm">
+                                            <div class="flex items-center gap-3">
+                                                <div
+                                                    class="h-10 w-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-600">
+                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <p class="text-sm font-bold text-gray-900 leading-tight">View
+                                                        Attachment</p>
+                                                    <p class="text-xs text-blue-600/70 font-medium italic">Click to
+                                                        open in new tab</p>
+                                                </div>
+                                            </div>
+                                            <svg class="w-5 h-5 text-blue-400 group-hover/item:translate-x-1 transition-transform"
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                            </svg>
+                                        </a>
+                                    @else
+                                        <p
+                                            class="text-gray-900 font-bold bg-gray-50 px-3 py-2 rounded-xl border border-gray-100 inline-block min-w-[120px]">
+                                            {{ $value ?? 'Not provided' }}</p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
             @endif

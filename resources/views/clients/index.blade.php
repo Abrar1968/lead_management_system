@@ -110,11 +110,14 @@
                                             @endphp
 
                                             @if ($field->type === 'image' && $value)
-                                                <img src="{{ asset('storage/' . $value) }}" alt="{{ $field->label }}"
-                                                    class="h-10 w-10 rounded-lg object-cover border border-gray-200">
+                                                <div class="relative group/thumb inline-block">
+                                                    <img src="{{ asset('storage/' . $value) }}"
+                                                        alt="{{ $field->label }}"
+                                                        class="h-10 w-10 rounded-xl object-cover border-2 border-white shadow-sm ring-1 ring-gray-100 group-hover/thumb:scale-110 transition-transform">
+                                                </div>
                                             @elseif($field->type === 'document' && $value)
                                                 <a href="{{ asset('storage/' . $value) }}" target="_blank"
-                                                    class="text-blue-600 hover:text-blue-800 text-xs font-medium inline-flex items-center gap-1">
+                                                    class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-all text-xs font-bold border border-blue-100">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -125,9 +128,18 @@
                                                 </a>
                                             @elseif($field->type === 'link' && $value)
                                                 <a href="{{ $value }}" target="_blank"
-                                                    class="text-blue-600 hover:text-blue-800 text-xs underline">Link</a>
+                                                    class="inline-flex items-center gap-1 px-2 py-1 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-all text-[11px] font-bold border border-indigo-100">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                    </svg>
+                                                    Link
+                                                </a>
                                             @else
-                                                <div class="text-sm text-gray-900">{{ Str::limit($value ?? '-', 20) }}
+                                                <div class="text-sm text-gray-600 font-medium italic">
+                                                    {{ Str::limit($value ?? '-', 15) }}
                                                 </div>
                                             @endif
                                         </td>

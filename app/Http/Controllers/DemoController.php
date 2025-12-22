@@ -192,6 +192,8 @@ class DemoController extends Controller
             $fieldKey = 'dynamic_'.$field->name;
             if ($field->type === 'image') {
                 $rules[$fieldKey] = ($field->required ? 'required|' : 'nullable|').'image|max:2048';
+            } elseif ($field->type === 'document') {
+                $rules[$fieldKey] = ($field->required ? 'required|' : 'nullable|').'file|mimes:pdf,doc,docx,xls,xlsx,txt|max:5120';
             } elseif ($field->type === 'link') {
                 $rules[$fieldKey] = ($field->required ? 'required|' : 'nullable|').'url|max:500';
             } else {

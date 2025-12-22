@@ -110,21 +110,16 @@ class ClientController extends Controller
             $value = null;
 
             if ($field->type === 'image' && $request->hasFile($fieldKey)) {
-                // Handle image upload using GD
                 $file = $request->file($fieldKey);
-                $path = $this->processImageUpload($file, $client->id, $field->name);
-                $value = $path;
+                $value = $this->processImageUpload($file, $client->id, $field->name);
             } elseif ($field->type === 'document' && $request->hasFile($fieldKey)) {
-                // Handle document upload
                 $file = $request->file($fieldKey);
                 $extension = $file->getClientOriginalExtension();
                 $filename = "client_{$client->id}_{$field->name}_".time().'.'.$extension;
-                $path = $file->storeAs('clients/documents', $filename, 'public');
-                $value = $path;
+                $value = $file->storeAs('clients/documents', $filename, 'public');
             } elseif ($field->type !== 'image' && $field->type !== 'document') {
                 $value = $validated[$fieldKey] ?? null;
             } else {
-                // Keep existing image if no new upload
                 continue;
             }
 
@@ -239,6 +234,6 @@ class ClientController extends Controller
             $fieldValue->delete();
         }
 
-        return back()->with('success', 'Image removed successfully.');
+        return back()->with('success', 'File removed successfully.');
     }
 }
