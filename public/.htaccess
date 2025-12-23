@@ -5,6 +5,9 @@
 
     RewriteEngine On
 
+    # Allow symlinks (required for storage link to work on shared hosting)
+    Options +FollowSymLinks
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -22,4 +25,21 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+</IfModule>
+
+# Ensure proper MIME types for all supported file formats
+<IfModule mod_mime.c>
+    # Image types (4 formats)
+    AddType image/jpeg .jpg .jpeg
+    AddType image/png .png
+    AddType image/gif .gif
+    AddType image/webp .webp
+
+    # Document types (6 formats)
+    AddType application/pdf .pdf
+    AddType application/msword .doc
+    AddType application/vnd.openxmlformats-officedocument.wordprocessingml.document .docx
+    AddType application/vnd.ms-excel .xls
+    AddType application/vnd.openxmlformats-officedocument.spreadsheetml.sheet .xlsx
+    AddType text/plain .txt
 </IfModule>
