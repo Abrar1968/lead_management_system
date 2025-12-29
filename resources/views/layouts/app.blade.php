@@ -353,9 +353,9 @@
                                 <span class="font-medium">Reports</span>
                             </a>
 
-                            <!-- Extra Commissions -->
-                            <a href="{{ route('admin.extra-commissions.index') }}"
-                                class="nav-item flex items-center px-4 py-3 text-white/90 rounded-xl hover:bg-white/10 hover:text-white group {{ request()->routeIs('admin.extra-commissions.*') ? 'bg-white/15 text-white shadow-lg' : '' }}">
+                            <!-- Commissions Management -->
+                            <a href="{{ route('admin.commissions.index') }}"
+                                class="nav-item flex items-center px-4 py-3 text-white/90 rounded-xl hover:bg-white/10 hover:text-white group {{ request()->routeIs('admin.commissions.*') || request()->routeIs('admin.extra-commissions.*') ? 'bg-white/15 text-white shadow-lg' : '' }}">
                                 <div
                                     class="w-9 h-9 rounded-lg bg-gradient-to-br from-yellow-500 to-amber-500 flex items-center justify-center mr-3 shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all">
                                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor"
@@ -364,7 +364,7 @@
                                             d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
-                                <span class="font-medium">Extra Commissions</span>
+                                <span class="font-medium">Commissions</span>
                             </a>
 
                             <!-- Services -->

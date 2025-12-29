@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('model_type'); // 'client' or 'demo'
             $table->string('name'); // field key (snake_case)
             $table->string('label'); // Display label
-            $table->enum('type', ['text', 'image', 'link'])->default('text');
+            $table->string('type', 20)->default('text'); // text, image, link, document
             $table->boolean('required')->default(false);
             $table->integer('order')->default(0);
             $table->boolean('is_active')->default(true);

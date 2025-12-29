@@ -94,3 +94,73 @@ describe('Update Commission Settings', function () {
         $response->assertSessionHasErrors(['commission_rate']);
     });
 });
+
+describe('Admin Commission Management', function () {
+    test('admin can view commission management dashboard', function () {
+        $response = $this->actingAs($this->admin)->get(route('admin.commissions.index'));
+
+        $response->assertOk();
+        $response->assertViewIs('commission.admin-index');
+        $response->assertViewHas(['usersWithStats', 'month', 'year']);
+    });
+
+    test('sales person cannot view commission management dashboard', function () {
+        $response = $this->actingAs($this->user)->get(route('admin.commissions.index'));
+
+        $response->assertForbidden();
+    });
+
+    test('admin can view edit form for a user', function () {
+        $salesPerson = User::factory()->salesPerson()->create();
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.commissions.edit', $salesPerson));
+
+        $response->assertOk();
+        $response->assertViewIs('commission.admin-edit');
+        $response->assertViewHas('user');
+    });
+
+    test('admin can update a user commission settings', function () {
+        $salesPerson = User::factory()->salesPerson()->fixedCommission(500)->create();
+
+        $response = $this->actingAs($this->admin)
+            ->put(route('admin.commissions.update', $salesPerson), [
+                'commission_type' => 'percentage',
+                'default_commission_rate' => 15,
+            ]);
+
+        $response->assertRedirect(route('admin.commissions.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $salesPerson->id,
+            'commission_type' => 'percentage',
+            'default_commission_rate' => 15,
+        ]);
+    });
+
+    test('admin update validates commission rate for percentage type', function () {
+        $salesPerson = User::factory()->salesPerson()->create();
+
+        $response = $this->actingAs($this->admin)
+            ->put(route('admin.commissions.update', $salesPerson), [
+                'commission_type' => 'percentage',
+                'default_commission_rate' => 150, // Invalid: exceeds 100
+            ]);
+
+        $response->assertSessionHasErrors(['default_commission_rate']);
+    });
+
+    test('sales person cannot update other users commission settings', function () {
+        $otherUser = User::factory()->salesPerson()->create();
+
+        $response = $this->actingAs($this->user)
+            ->put(route('admin.commissions.update', $otherUser), [
+                'commission_type' => 'fixed',
+                'default_commission_rate' => 1000,
+            ]);
+
+        $response->assertForbidden();
+    });
+});

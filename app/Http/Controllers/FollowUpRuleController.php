@@ -6,7 +6,6 @@ use App\Http\Requests\StoreFollowUpRuleRequest;
 use App\Models\FollowUpRule;
 use App\Models\FollowUpRuleCondition;
 use App\Services\AutoFollowUpService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -144,7 +143,7 @@ class FollowUpRuleController extends Controller
         $followUpRule->load('conditions');
 
         return view('follow-up-rules.edit', [
-            'rule' => $followUpRule,
+            'followUpRule' => $followUpRule,
             'availableFields' => FollowUpRuleCondition::AVAILABLE_FIELDS,
             'operators' => FollowUpRuleCondition::OPERATORS,
         ]);
@@ -221,29 +220,39 @@ class FollowUpRuleController extends Controller
     /**
      * Preview leads matching a rule.
      */
-    public function preview(FollowUpRule $followUpRule, AutoFollowUpService $service): JsonResponse
+    public function preview(Request $request, FollowUpRule $followUpRule, AutoFollowUpService $service)
     {
         $this->authorizeRule($followUpRule);
 
         $followUpRule->load('conditions');
 
-        $matchingLeads = $service->previewRuleMatches($followUpRule, 10);
+        $matchingLeads = $service->previewRuleMatches($followUpRule, 50);
 
-        return response()->json([
-            'success' => true,
-            'total_matches' => $matchingLeads->count(),
-            'leads' => $matchingLeads->map(function ($lead) {
-                return [
-                    'id' => $lead->id,
-                    'lead_number' => $lead->lead_number,
-                    'client_name' => $lead->client_name,
-                    'phone_number' => $lead->phone_number,
-                    'status' => $lead->status,
-                    'priority' => $lead->priority,
-                    'source' => $lead->source,
-                    'lead_date' => $lead->lead_date?->format('Y-m-d'),
-                ];
-            }),
+        // If the client expects JSON (AJAX / API call), return JSON payload
+        if ($request->wantsJson() || $request->ajax() || $request->isJson()) {
+            return response()->json([
+                'success' => true,
+                'total_matches' => $matchingLeads->count(),
+                'leads' => $matchingLeads->map(function ($lead) {
+                    return [
+                        'id' => $lead->id,
+                        'lead_number' => $lead->lead_number,
+                        'client_name' => $lead->client_name,
+                        'phone_number' => $lead->phone_number,
+                        'status' => $lead->status,
+                        'priority' => $lead->priority,
+                        'source' => $lead->source,
+                        'lead_date' => $lead->lead_date?->format('Y-m-d'),
+                    ];
+                }),
+            ]);
+        }
+
+        // Otherwise render an HTML view with the matching leads
+        return view('follow-up-rules.preview', [
+            'followUpRule' => $followUpRule,
+            'matchingLeads' => $matchingLeads,
+            'totalMatches' => $matchingLeads->count(),
         ]);
     }
 

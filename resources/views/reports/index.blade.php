@@ -9,22 +9,56 @@
                 </div>
                 <div>
                     <h2 class="text-2xl font-bold text-gray-900">Reports</h2>
-                    <p class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($month)->format('F Y') }}</p>
+                    <p class="text-sm text-gray-500">{{ $periodLabel ?? \Carbon\Carbon::parse($month)->format('F Y') }}</p>
                 </div>
             </div>
         </div>
     </x-slot>
 
-    {{-- Month Filter --}}
+    {{-- Period & Date Filter --}}
     <div class="mb-6">
-        <form method="GET" class="flex flex-wrap items-center gap-4">
-            <input type="month" name="month" value="{{ $month }}"
-                class="rounded-xl border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium transition-all duration-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20">
+        <form method="GET" class="flex flex-wrap items-center gap-4" x-data="{ period: '{{ $period ?? 'monthly' }}' }">
+            {{-- Period Selector --}}
+            <div class="flex rounded-xl bg-gray-100 p-1">
+                @foreach (['daily' => 'Daily', 'weekly' => 'Weekly', 'monthly' => 'Monthly', 'yearly' => 'Yearly'] as $value => $label)
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="period" value="{{ $value }}" x-model="period" class="peer sr-only">
+                        <div class="rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-md text-gray-600 hover:text-gray-900">
+                            {{ $label }}
+                        </div>
+                    </label>
+                @endforeach
+            </div>
+
+            {{-- Date Input (changes based on period) --}}
+            <template x-if="period === 'daily'">
+                <input type="date" name="date" value="{{ $date ?? now()->format('Y-m-d') }}"
+                    class="rounded-xl border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium transition-all duration-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20">
+            </template>
+            <template x-if="period === 'weekly'">
+                <input type="week" name="date" value="{{ \Carbon\Carbon::parse($date ?? now())->format('Y-\\WW') }}"
+                    class="rounded-xl border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium transition-all duration-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20">
+            </template>
+            <template x-if="period === 'monthly'">
+                <input type="month" name="date" value="{{ $month }}"
+                    class="rounded-xl border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium transition-all duration-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20">
+            </template>
+            <template x-if="period === 'yearly'">
+                <select name="date"
+                    class="rounded-xl border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium transition-all duration-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20">
+                    @foreach (range(now()->year, now()->year - 5) as $y)
+                        <option value="{{ $y }}-01-01" {{ (isset($date) && \Carbon\Carbon::parse($date)->year == $y) ? 'selected' : '' }}>
+                            {{ $y }}
+                        </option>
+                    @endforeach
+                </select>
+            </template>
+
             <button type="submit"
                 class="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:shadow-xl transition-all">
                 Generate Report
             </button>
-            <a href="{{ route('reports.print', ['month' => $month]) }}" target="_blank"
+            <a href="{{ route('reports.print', ['period' => $period ?? 'monthly', 'date' => $date ?? now()->format('Y-m-d')]) }}" target="_blank"
                 class="rounded-xl bg-gray-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-gray-800 transition-all flex items-center gap-2">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -193,26 +227,32 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                             </svg>
                         </div>
-                        <h3 class="font-semibold text-white">Daily Lead Count</h3>
+                        <h3 class="font-semibold text-white">Lead Trend</h3>
                     </div>
                 </div>
                 <div class="p-5">
-                    <div class="flex h-40 items-end gap-1">
-                        @php
-                            $maxValue = max(array_values($dailyData) ?: [1]);
-                        @endphp
-                        @foreach ($dailyData as $day => $count)
-                            <div class="group relative flex flex-1 flex-col items-center">
-                                <div class="w-full rounded-t bg-gradient-to-t from-indigo-600 to-purple-500 transition-all hover:from-indigo-500 hover:to-purple-400"
-                                    style="height: {{ $maxValue > 0 ? ($count / $maxValue) * 100 : 0 }}%"
-                                    title="Day {{ $day }}: {{ $count }} leads">
+                    @if (!empty($chartData))
+                        <div class="flex h-40 items-end gap-1">
+                            @php
+                                $maxValue = max(array_values($chartData) ?: [1]);
+                            @endphp
+                            @foreach ($chartData as $label => $count)
+                                <div class="group relative flex flex-1 flex-col items-center">
+                                    <div class="w-full rounded-t bg-gradient-to-t from-indigo-600 to-purple-500 transition-all hover:from-indigo-500 hover:to-purple-400"
+                                        style="height: {{ $maxValue > 0 ? ($count / $maxValue) * 100 : 0 }}%"
+                                        title="{{ $label }}: {{ $count }} leads">
+                                    </div>
+                                    @if ($loop->iteration % 5 == 1 || $loop->last || count($chartData) <= 12)
+                                        <span class="mt-2 text-[10px] font-medium text-gray-500">{{ $label }}</span>
+                                    @endif
                                 </div>
-                                @if ($loop->iteration % 5 == 1 || $loop->last)
-                                    <span class="mt-2 text-[10px] font-medium text-gray-500">{{ $day }}</span>
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="flex h-40 items-center justify-center text-gray-500 text-sm">
+                            <p>Chart not available for daily view</p>
+                        </div>
+                    @endif
                 </div>
             </div>
 

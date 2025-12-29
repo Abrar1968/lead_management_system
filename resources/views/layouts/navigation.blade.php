@@ -48,7 +48,7 @@
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                         {{ __('Users') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('admin.extra-commissions.index')" :active="request()->routeIs('admin.extra-commissions.*')">
+                    <x-nav-link :href="route('admin.commissions.index')" :active="request()->routeIs('admin.commissions.*') || request()->routeIs('admin.extra-commissions.*')">
                         {{ __('Commissions') }}
                     </x-nav-link>
                     <x-nav-link :href="route('field-definitions.index')" :active="request()->routeIs('field-definitions.*')">
@@ -151,8 +151,8 @@
             <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                 {{ __('Users') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('admin.extra-commissions.index')" :active="request()->routeIs('admin.extra-commissions.*')">
-                {{ __('Extra Commissions') }}
+            <x-responsive-nav-link :href="route('admin.commissions.index')" :active="request()->routeIs('admin.commissions.*') || request()->routeIs('admin.extra-commissions.*')">
+                {{ __('Commissions') }}
             </x-responsive-nav-link>
             @endif
         </div>

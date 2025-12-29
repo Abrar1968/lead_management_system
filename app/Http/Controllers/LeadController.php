@@ -62,6 +62,10 @@ class LeadController extends Controller
     {
         $data = $request->validated();
 
+        // Extract initial_response before creating lead (it's not a lead field)
+        $initialResponse = $data['initial_response'] ?? null;
+        unset($data['initial_response']);
+
         // Check for duplicate phone number
         $existingLead = Lead::where('phone_number', $data['phone_number'])->first();
 
@@ -76,6 +80,11 @@ class LeadController extends Controller
             $data['assigned_to'] = $request->user()->id;
         }
 
+        // Set default status if not provided
+        if (! isset($data['status'])) {
+            $data['status'] = 'New';
+        }
+
         try {
             $lead = $this->leadService->createLead($data);
         } catch (\Illuminate\Database\QueryException $e) {
@@ -86,6 +95,23 @@ class LeadController extends Controller
                 $lead = $this->leadService->createLead($data);
             } else {
                 throw $e;
+            }
+        }
+
+        // Create initial contact record if initial_response was provided
+        if ($initialResponse) {
+            \App\Models\LeadContact::create([
+                'lead_id' => $lead->id,
+                'call_date' => $lead->lead_date,
+                'call_time' => $lead->lead_time ?? now()->format('H:i:s'),
+                'caller_id' => $request->user()->id,
+                'response_status' => $initialResponse,
+                'notes' => $data['initial_remarks'] ?? null,
+            ]);
+
+            // Update lead status to Contacted if it was New
+            if ($lead->status === 'New') {
+                $lead->update(['status' => 'Contacted']);
             }
         }
 

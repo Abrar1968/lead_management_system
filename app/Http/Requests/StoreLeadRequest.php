@@ -32,6 +32,8 @@ class StoreLeadRequest extends FormRequest
             'service_interested' => ['nullable', 'string'],
             'service_id' => ['required', 'exists:services,id'],
             'priority' => ['nullable', Rule::in(['High', 'Medium', 'Low'])],
+            'status' => ['nullable', Rule::in(\App\Models\Lead::getStatusValues())],
+            'initial_response' => ['nullable', Rule::in(array_keys(\App\Http\Controllers\LeadContactController::RESPONSE_STATUSES))],
             'assigned_to' => ['nullable', 'exists:users,id'],
             'initial_remarks' => ['nullable', 'string', 'max:1000'],
         ];
@@ -55,6 +57,8 @@ class StoreLeadRequest extends FormRequest
             'service_id.required' => 'Service is required. Please select the service the client is interested in.',
             'service_id.exists' => 'The selected service does not exist.',
             'priority.in' => 'Invalid priority level. Please choose High, Medium, or Low.',
+            'status.in' => 'Invalid status selected.',
+            'initial_response.in' => 'Invalid response status selected.',
             'assigned_to.exists' => 'The selected user does not exist.',
             'initial_remarks.max' => 'Initial remarks cannot exceed 1000 characters.',
         ];

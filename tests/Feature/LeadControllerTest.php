@@ -118,11 +118,12 @@ describe('Lead Update', function () {
 describe('Lead Delete', function () {
     test('admin can delete a lead', function () {
         $lead = Lead::factory()->create(['assigned_to' => $this->salesPerson->id]);
+        $leadId = $lead->id;
 
         $response = $this->actingAs($this->admin)->delete(route('leads.destroy', $lead));
 
         $response->assertRedirect();
-        $this->assertSoftDeleted('leads', ['id' => $lead->id]);
+        $this->assertDatabaseMissing('leads', ['id' => $leadId]);
     });
 });
 

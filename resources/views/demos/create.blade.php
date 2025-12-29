@@ -168,40 +168,41 @@
                                             <span class="text-red-500">*</span>
                                         @endif
                                     </label>
-                                @elseif($field->type === 'image')
-                                    <input type="file" id="dynamic_{{ $field->name }}"
-                                        name="dynamic_{{ $field->name }}" accept="image/*"
-                                        {{ $field->required ? 'required' : '' }}
-                                        class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                                @elseif($field->type === 'document')
-                                    <input type="file" id="dynamic_{{ $field->name }}"
-                                        name="dynamic_{{ $field->name }}" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
-                                        {{ $field->required ? 'required' : '' }}
-                                        class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                                    <p class="mt-1 text-xs text-gray-500">Max 5MB. PDF, DOC, DOCX, XLS, XLSX, TXT</p>
-                                @elseif($field->type === 'link')
-                                    <input type="url" id="dynamic_{{ $field->name }}"
-                                        name="dynamic_{{ $field->name }}"
-                                        value="{{ old('dynamic_' . $field->name) }}"
-                                        {{ $field->required ? 'required' : '' }}
-                                        class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        placeholder="https://...">
-                                @else
-                                    <input type="text" id="dynamic_{{ $field->name }}"
-                                        name="dynamic_{{ $field->name }}"
-                                        value="{{ old('dynamic_' . $field->name) }}"
-                                        {{ $field->required ? 'required' : '' }}
-                                        class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            @endif
 
-                            @error('dynamic_' . $field->name)
-                                <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
-                            @enderror
+                                    @if ($field->type === 'image')
+                                        <input type="file" id="dynamic_{{ $field->name }}"
+                                            name="dynamic_{{ $field->name }}" accept="image/*"
+                                            {{ $field->required ? 'required' : '' }}
+                                            class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                    @elseif($field->type === 'document')
+                                        <input type="file" id="dynamic_{{ $field->name }}"
+                                            name="dynamic_{{ $field->name }}" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
+                                            {{ $field->required ? 'required' : '' }}
+                                            class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                        <p class="mt-1 text-xs text-gray-500">Max 5MB. PDF, DOC, DOCX, XLS, XLSX, TXT</p>
+                                    @elseif($field->type === 'link')
+                                        <input type="url" id="dynamic_{{ $field->name }}"
+                                            name="dynamic_{{ $field->name }}"
+                                            value="{{ old('dynamic_' . $field->name) }}"
+                                            {{ $field->required ? 'required' : '' }}
+                                            class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            placeholder="https://...">
+                                    @else
+                                        <input type="text" id="dynamic_{{ $field->name }}"
+                                            name="dynamic_{{ $field->name }}"
+                                            value="{{ old('dynamic_' . $field->name) }}"
+                                            {{ $field->required ? 'required' : '' }}
+                                            class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @endif
+
+                                    @error('dynamic_' . $field->name)
+                                        <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @endforeach
                         </div>
-                @endforeach
-        </div>
-    </div>
-    @endif
+                    </div>
+                @endif
 
     <!-- Submit Button -->
     <div class="flex justify-end pt-4 border-t border-gray-200">
