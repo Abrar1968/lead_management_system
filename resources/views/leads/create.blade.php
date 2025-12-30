@@ -217,6 +217,46 @@
                             @enderror
                         </div>
 
+                        {{-- Status --}}
+                        <div class="space-y-2">
+                            <label for="status" class="block text-sm font-semibold text-gray-700">
+                                Status
+                            </label>
+                            <select name="status" id="status"
+                                class="w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20">
+                                @foreach (\App\Models\Lead::STATUSES as $value => $config)
+                                    <option value="{{ $value }}"
+                                        {{ old('status', 'New') === $value ? 'selected' : '' }}>
+                                        {{ $config['label'] }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('status')
+                                <p class="text-sm font-medium text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Initial Response --}}
+                        <div class="space-y-2">
+                            <label for="initial_response" class="block text-sm font-semibold text-gray-700">
+                                Initial Response
+                            </label>
+                            <select name="initial_response" id="initial_response"
+                                class="w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20">
+                                <option value="">-- No Initial Contact --</option>
+                                @foreach (\App\Http\Controllers\LeadContactController::RESPONSE_STATUSES as $value => $config)
+                                    <option value="{{ $value }}"
+                                        {{ old('initial_response') === $value ? 'selected' : '' }}>
+                                        {{ $config['label'] }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-500">If set, creates an initial contact record automatically</p>
+                            @error('initial_response')
+                                <p class="text-sm font-medium text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         {{-- Assigned To (Admin only) --}}
                         @if (auth()->user()->isAdmin())
                             <div class="space-y-2">

@@ -13,14 +13,64 @@ use Illuminate\View\View;
 class ReportController extends Controller
 {
     /**
+     * Available report periods
+     */
+    public const PERIODS = [
+        'daily' => 'Daily',
+        'weekly' => 'Weekly',
+        'monthly' => 'Monthly',
+        'yearly' => 'Yearly',
+    ];
+
+    /**
+     * Get date range based on period type
+     */
+    private function getDateRange(string $period, ?string $date = null): array
+    {
+        $baseDate = $date ? Carbon::parse($date) : now();
+
+        return match ($period) {
+            'daily' => [
+                'start' => $baseDate->copy()->startOfDay(),
+                'end' => $baseDate->copy()->endOfDay(),
+                'label' => $baseDate->format('F d, Y'),
+            ],
+            'weekly' => [
+                'start' => $baseDate->copy()->startOfWeek(),
+                'end' => $baseDate->copy()->endOfWeek(),
+                'label' => $baseDate->copy()->startOfWeek()->format('M d').' - '.$baseDate->copy()->endOfWeek()->format('M d, Y'),
+            ],
+            'yearly' => [
+                'start' => $baseDate->copy()->startOfYear(),
+                'end' => $baseDate->copy()->endOfYear(),
+                'label' => $baseDate->format('Y'),
+            ],
+            default => [ // monthly
+                'start' => $baseDate->copy()->startOfMonth(),
+                'end' => $baseDate->copy()->endOfMonth(),
+                'label' => $baseDate->format('F Y'),
+            ],
+        };
+    }
+
+    /**
      * Display reports dashboard.
      */
     public function index(Request $request): View
     {
         $user = auth()->user();
-        $month = $request->input('month', now()->format('Y-m'));
-        $startDate = Carbon::parse($month)->startOfMonth();
-        $endDate = Carbon::parse($month)->endOfMonth();
+        $period = $request->input('period', 'monthly');
+        $date = $request->input('date', now()->format('Y-m-d'));
+
+        // Support old 'month' parameter for backwards compatibility
+        if ($request->has('month') && ! $request->has('date')) {
+            $date = $request->input('month').'-01';
+        }
+
+        $dateRange = $this->getDateRange($period, $date);
+        $startDate = $dateRange['start'];
+        $endDate = $dateRange['end'];
+        $periodLabel = $dateRange['label'];
 
         // For admin: get all data, for sales_person: only their data
         $isAdmin = $user->role === 'admin';
@@ -79,15 +129,28 @@ class ReportController extends Controller
         }
         $statusBreakdown = $statusBreakdownQuery->groupBy('status')->pluck('count', 'status');
 
-        // Daily chart data
-        $dailyData = [];
-        for ($date = $startDate->copy(); $date <= $endDate; $date->addDay()) {
-            $dateStr = $date->format('Y-m-d');
-            $leadsOnDate = Lead::whereDate('lead_date', $dateStr);
-            if (! $isAdmin) {
-                $leadsOnDate->where('assigned_to', $user->id);
+        // Daily chart data (only for weekly/monthly periods)
+        $chartData = [];
+        if (in_array($period, ['weekly', 'monthly'])) {
+            for ($chartDate = $startDate->copy(); $chartDate <= $endDate; $chartDate->addDay()) {
+                $dateStr = $chartDate->format('Y-m-d');
+                $leadsOnDate = Lead::whereDate('lead_date', $dateStr);
+                if (! $isAdmin) {
+                    $leadsOnDate->where('assigned_to', $user->id);
+                }
+                $chartData[$chartDate->format($period === 'weekly' ? 'D' : 'd')] = $leadsOnDate->count();
             }
-            $dailyData[$date->format('d')] = $leadsOnDate->count();
+        } elseif ($period === 'yearly') {
+            // Monthly breakdown for yearly reports
+            for ($m = 1; $m <= 12; $m++) {
+                $monthStart = Carbon::create($startDate->year, $m, 1)->startOfMonth();
+                $monthEnd = Carbon::create($startDate->year, $m, 1)->endOfMonth();
+                $leadsInMonth = Lead::whereBetween('lead_date', [$monthStart, $monthEnd]);
+                if (! $isAdmin) {
+                    $leadsInMonth->where('assigned_to', $user->id);
+                }
+                $chartData[Carbon::create()->month($m)->format('M')] = $leadsInMonth->count();
+            }
         }
 
         // Top performers (admin only)
@@ -103,8 +166,14 @@ class ReportController extends Controller
                 ->filter(fn ($user) => $user->conversions_count > 0);
         }
 
+        // Keep month for backwards compatibility
+        $month = Carbon::parse($date)->format('Y-m');
+
         return view('reports.index', compact(
             'month',
+            'period',
+            'date',
+            'periodLabel',
             'totalLeads',
             'totalCalls',
             'totalConversions',
@@ -114,7 +183,7 @@ class ReportController extends Controller
             'sourceBreakdown',
             'serviceBreakdown',
             'statusBreakdown',
-            'dailyData',
+            'chartData',
             'conversions',
             'topPerformers',
             'isAdmin'
@@ -127,9 +196,18 @@ class ReportController extends Controller
     public function print(Request $request): View
     {
         $user = auth()->user();
-        $month = $request->input('month', now()->format('Y-m'));
-        $startDate = Carbon::parse($month)->startOfMonth();
-        $endDate = Carbon::parse($month)->endOfMonth();
+        $period = $request->input('period', 'monthly');
+        $date = $request->input('date', now()->format('Y-m-d'));
+
+        // Support old 'month' parameter for backwards compatibility
+        if ($request->has('month') && ! $request->has('date')) {
+            $date = $request->input('month').'-01';
+        }
+
+        $dateRange = $this->getDateRange($period, $date);
+        $startDate = $dateRange['start'];
+        $endDate = $dateRange['end'];
+        $periodLabel = $dateRange['label'];
 
         // For admin: get all data, for sales_person: only their data
         $isAdmin = $user->role === 'admin';
@@ -188,15 +266,28 @@ class ReportController extends Controller
         }
         $statusBreakdown = $statusBreakdownQuery->groupBy('status')->pluck('count', 'status');
 
-        // Daily chart data
-        $dailyData = [];
-        for ($date = $startDate->copy(); $date <= $endDate; $date->addDay()) {
-            $dateStr = $date->format('Y-m-d');
-            $leadsOnDate = Lead::whereDate('lead_date', $dateStr);
-            if (! $isAdmin) {
-                $leadsOnDate->where('assigned_to', $user->id);
+        // Chart data (only for weekly/monthly periods)
+        $chartData = [];
+        if (in_array($period, ['weekly', 'monthly'])) {
+            for ($chartDate = $startDate->copy(); $chartDate <= $endDate; $chartDate->addDay()) {
+                $dateStr = $chartDate->format('Y-m-d');
+                $leadsOnDate = Lead::whereDate('lead_date', $dateStr);
+                if (! $isAdmin) {
+                    $leadsOnDate->where('assigned_to', $user->id);
+                }
+                $chartData[$chartDate->format($period === 'weekly' ? 'D' : 'd')] = $leadsOnDate->count();
             }
-            $dailyData[$date->format('d')] = $leadsOnDate->count();
+        } elseif ($period === 'yearly') {
+            // Monthly breakdown for yearly reports
+            for ($m = 1; $m <= 12; $m++) {
+                $monthStart = Carbon::create($startDate->year, $m, 1)->startOfMonth();
+                $monthEnd = Carbon::create($startDate->year, $m, 1)->endOfMonth();
+                $leadsInMonth = Lead::whereBetween('lead_date', [$monthStart, $monthEnd]);
+                if (! $isAdmin) {
+                    $leadsInMonth->where('assigned_to', $user->id);
+                }
+                $chartData[Carbon::create()->month($m)->format('M')] = $leadsInMonth->count();
+            }
         }
 
         // Top performers (admin only)
@@ -212,8 +303,13 @@ class ReportController extends Controller
                 ->filter(fn ($user) => $user->conversions_count > 0);
         }
 
+        // Keep month for backwards compatibility
+        $month = Carbon::parse($date)->format('Y-m');
+
         return view('reports.print', compact(
             'month',
+            'period',
+            'periodLabel',
             'totalLeads',
             'totalCalls',
             'totalConversions',
@@ -223,7 +319,7 @@ class ReportController extends Controller
             'sourceBreakdown',
             'serviceBreakdown',
             'statusBreakdown',
-            'dailyData',
+            'chartData',
             'conversions',
             'topPerformers',
             'isAdmin'

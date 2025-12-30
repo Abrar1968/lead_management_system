@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Report - {{ \Carbon\Carbon::parse($month)->format('F Y') }}</title>
+    <title>Report - {{ $periodLabel ?? \Carbon\Carbon::parse($month)->format('F Y') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -41,8 +41,8 @@
                 </svg>
             </div>
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">Monthly Report</h1>
-                <p class="text-lg font-medium text-indigo-600">{{ \Carbon\Carbon::parse($month)->format('F Y') }}</p>
+                <h1 class="text-3xl font-bold text-gray-900">{{ ucfirst($period ?? 'Monthly') }} Report</h1>
+                <p class="text-lg font-medium text-indigo-600">{{ $periodLabel ?? \Carbon\Carbon::parse($month)->format('F Y') }}</p>
             </div>
         </div>
         <div class="text-right">

@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -83,6 +84,52 @@ class User extends Authenticatable
     public function leadContacts(): HasMany
     {
         return $this->hasMany(LeadContact::class, 'caller_id');
+    }
+
+    /**
+     * Commission types assigned to this user
+     */
+    public function commissionTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(CommissionType::class, 'user_commission_types')
+            ->withPivot(['custom_rate', 'is_primary'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the primary commission type for this user
+     */
+    public function primaryCommissionType(): ?CommissionType
+    {
+        return $this->commissionTypes()->wherePivot('is_primary', true)->first()
+            ?? $this->commissionTypes()->first();
+    }
+
+    /**
+     * Get the effective commission rate (from primary commission type or legacy field)
+     */
+    public function getEffectiveCommissionRate(): float
+    {
+        $primary = $this->primaryCommissionType();
+
+        if ($primary) {
+            $pivot = $this->commissionTypes()->where('commission_types.id', $primary->id)->first()?->pivot;
+
+            return $pivot?->custom_rate ?? $primary->default_rate;
+        }
+
+        // Fallback to legacy commission_rate field
+        return (float) $this->default_commission_rate;
+    }
+
+    /**
+     * Get the effective commission type (fixed/percentage)
+     */
+    public function getEffectiveCommissionType(): string
+    {
+        $primary = $this->primaryCommissionType();
+
+        return $primary?->calculation_type ?? $this->commission_type ?? 'fixed';
     }
 
     // Helper methods

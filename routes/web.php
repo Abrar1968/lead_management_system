@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CommissionController;
+use App\Http\Controllers\CommissionTypeController;
 use App\Http\Controllers\ConversionController;
 use App\Http\Controllers\DailyLeadController;
 use App\Http\Controllers\DashboardController;
@@ -145,6 +146,24 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     ]);
     Route::post('/extra-commissions/{extraCommission}/approve', [ExtraCommissionController::class, 'approve'])->name('admin.extra-commissions.approve');
     Route::post('/extra-commissions/{extraCommission}/mark-paid', [ExtraCommissionController::class, 'markPaid'])->name('admin.extra-commissions.mark-paid');
+
+    // Admin Commission Management
+    Route::get('/admin/commissions', [CommissionController::class, 'adminIndex'])->name('admin.commissions.index');
+    Route::get('/admin/commissions/{user}/edit', [CommissionController::class, 'adminEdit'])->name('admin.commissions.edit');
+    Route::put('/admin/commissions/{user}', [CommissionController::class, 'adminUpdate'])->name('admin.commissions.update');
+
+    // Commission Types Management
+    Route::resource('commission-types', CommissionTypeController::class)->names([
+        'index' => 'admin.commission-types.index',
+        'create' => 'admin.commission-types.create',
+        'store' => 'admin.commission-types.store',
+        'edit' => 'admin.commission-types.edit',
+        'update' => 'admin.commission-types.update',
+        'destroy' => 'admin.commission-types.destroy',
+    ])->except(['show']);
+    Route::get('/commission-types/{commission_type}/users', [CommissionTypeController::class, 'users'])->name('admin.commission-types.users');
+    Route::post('/commission-types/{commission_type}/assign', [CommissionTypeController::class, 'assignToUser'])->name('admin.commission-types.assign');
+    Route::delete('/commission-types/{commission_type}/remove/{user}', [CommissionTypeController::class, 'removeFromUser'])->name('admin.commission-types.remove');
 });
 
 // Profile Routes
